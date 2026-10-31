@@ -1,0 +1,306 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --font-sans: var(--font-active-interface);
+  --font-serif: var(--font-active-editorial);
+  --color-bg: var(--color-bg);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-surface: var(--color-surface);
+  --color-surface-strong: var(--color-surface-strong);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-border: var(--color-border);
+  --color-accent: var(--color-accent);
+  --color-accent-text: var(--color-accent-text);
+  --color-nav-bg: var(--color-nav-bg);
+  --color-nav-border: var(--color-nav-border);
+  --color-positive: var(--color-positive);
+  --color-warning: var(--color-warning);
+}
+
+/* =========================================================================
+   DYNAMIC FONT PAIRINGS
+   ========================================================================= */
+
+:root,
+[data-font-pairing="editorial"] {
+  --font-active-editorial: var(--font-editorial-instrument), Georgia, serif;
+  --font-active-interface: var(--font-interface-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font-pairing="literary"] {
+  --font-active-editorial: var(--font-editorial-newsreader), "Times New Roman", Georgia, serif;
+  --font-active-interface: var(--font-interface-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font-pairing="modern"] {
+  --font-active-editorial: var(--font-editorial-fraunces), Georgia, serif;
+  --font-active-interface: var(--font-interface-dmsans), ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-font-pairing="humanist"] {
+  --font-active-editorial: var(--font-editorial-newsreader), Georgia, serif;
+  --font-active-interface: var(--font-interface-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-active-interface), var(--font-interface), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.35s var(--ease-soft), color 0.35s var(--ease-soft);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  color: var(--color-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.font-editorial {
+  font-family: var(--font-active-editorial), var(--font-editorial), Georgia, serif;
+}
+
+.font-handwriting {
+  font-family: var(--font-handwriting-caveat), "Caveat", "Brush Script MT", cursive;
+}
+
+/* =========================================================================
+   INPUT & FORM STYLING (Dark theme & all theme adaptations)
+   ========================================================================= */
+
+input,
+textarea,
+select {
+  color: var(--color-input-text, var(--color-text));
+  background-color: var(--color-input-bg);
+  border-color: var(--color-input-border);
+  caret-color: var(--color-accent);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-input-placeholder);
+  opacity: 1;
+}
+
+/* Prevent browser autofill from blindingly flashing white in dark themes */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--color-input-text, var(--color-text)) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--color-input-bg) inset !important;
+  box-shadow: 0 0 0px 1000px var(--color-input-bg) inset !important;
+  caret-color: var(--color-accent) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Color input styling */
+input[type="color"] {
+  background-color: transparent;
+  border-radius: var(--radius-full);
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+input[type="color"]::-webkit-color-swatch {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+/* Range input styling */
+input[type="range"] {
+  accent-color: var(--color-accent);
+}
+
+/* Reusable tactile sunken input surface */
+.input-surface {
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text, var(--color-text));
+  border: 1px solid var(--color-input-border);
+  box-shadow: inset 0 1.5px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s var(--ease-standard),
+              box-shadow 0.2s var(--ease-standard),
+              background-color 0.25s var(--ease-standard);
+}
+
+[data-mode="dark"] .input-surface,
+[data-theme="ink"] .input-surface {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.input-surface:focus,
+.input-surface:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 3px var(--color-input-focus-ring);
+}
+
+/* =========================================================================
+   LIQUID GLASS NAVIGATION & SURFACES
+   ========================================================================= */
+
+/* The primary liquid glass navigation pill - Apple VisionOS frosted liquid glass */
+.glass-nav-pill {
+  position: relative;
+  background:
+    radial-gradient(130% 120% at 50% -10%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.04) 45%, transparent 80%),
+    var(--color-nav-bg);
+  backdrop-filter: blur(48px) saturate(210%) contrast(110%) brightness(88%);
+  -webkit-backdrop-filter: blur(48px) saturate(210%) contrast(110%) brightness(88%);
+  border: 1px solid var(--color-nav-border);
+  box-shadow:
+    inset 0 1px 1.5px 0 var(--color-nav-highlight),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.22),
+    inset 0 0 24px 0 rgba(255, 255, 255, 0.10),
+    0 20px 48px -10px rgba(0, 0, 0, 0.26),
+    0 4px 14px -2px rgba(0, 0, 0, 0.12);
+  isolation: isolate;
+  transition:
+    background 0.35s var(--ease-standard),
+    box-shadow 0.35s var(--ease-standard),
+    border-color 0.35s var(--ease-standard),
+    transform 0.25s var(--ease-soft);
+}
+
+[data-mode="dark"] .glass-nav-pill,
+[data-theme="ink"] .glass-nav-pill {
+  background:
+    radial-gradient(130% 120% at 50% -10%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 45%, transparent 80%),
+    var(--color-nav-bg);
+  backdrop-filter: blur(56px) saturate(220%) contrast(118%) brightness(80%);
+  -webkit-backdrop-filter: blur(56px) saturate(220%) contrast(118%) brightness(80%);
+  box-shadow:
+    inset 0 1px 1px 0 var(--color-nav-highlight),
+    inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.90),
+    inset 0 0 28px 0 rgba(255, 255, 255, 0.03),
+    0 24px 60px -10px rgba(0, 0, 0, 0.92),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Distorted glass refraction texture layer */
+.glass-distortion-texture {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-size: 130px 130px;
+}
+
+[data-mode="dark"] .glass-distortion-texture,
+[data-theme="ink"] .glass-distortion-texture {
+  opacity: 0.08;
+  mix-blend-mode: soft-light;
+}
+
+/* Glass specular sheen light refraction */
+.glass-specular-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.16) 42%,
+    rgba(255, 255, 255, 0.35) 48%,
+    rgba(255, 255, 255, 0.12) 54%,
+    transparent 72%
+  );
+  opacity: 0.8;
+  transition: opacity 0.5s ease-out;
+}
+
+[data-mode="dark"] .glass-specular-sheen,
+[data-theme="ink"] .glass-specular-sheen {
+  background: linear-gradient(
+    115deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.05) 42%,
+    rgba(255, 255, 255, 0.15) 48%,
+    rgba(255, 255, 255, 0.03) 54%,
+    transparent 72%
+  );
+  opacity: 0.9;
+}
+
+/* General glass surface (mobile panels, popups, sheets) */
+.glass-surface {
+  background: var(--color-nav-bg);
+  backdrop-filter: saturate(180%) blur(48px) brightness(86%);
+  -webkit-backdrop-filter: saturate(180%) blur(48px) brightness(86%);
+  border: 1px solid var(--color-nav-border);
+  box-shadow:
+    inset 0 1px 1px 0 var(--color-nav-highlight),
+    0 16px 44px -8px rgba(0, 0, 0, 0.28);
+}
+
+[data-mode="dark"] .glass-surface,
+[data-theme="ink"] .glass-surface {
+  backdrop-filter: saturate(200%) blur(56px) brightness(78%);
+  -webkit-backdrop-filter: saturate(200%) blur(56px) brightness(78%);
+  box-shadow:
+    inset 0 1px 1px 0 var(--color-nav-highlight),
+    0 20px 48px -10px rgba(0, 0, 0, 0.85);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Shared surface used across cards, panels and sheets. */
+.surface-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: background-color 0.3s var(--ease-soft), border-color 0.3s var(--ease-soft);
+}
+
+.text-balance {
+  text-wrap: balance;
+}

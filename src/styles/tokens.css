@@ -1,0 +1,205 @@
+/*
+  Trueself design tokens.
+  Every visual surface in the app reads from these CSS custom properties,
+  so switching a theme (Paper / Ink / Terra / Moss) or a custom accent
+  colour only ever requires changing values here — never component code.
+*/
+
+:root,
+[data-theme="paper"] {
+  /* ---- Base spacing & radius scale (4px increments) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- PAPER theme (default light) ---- */
+  color-scheme: light;
+  --color-bg: #f7f0e9;
+  --color-bg-elevated: #fffdfa;
+  --color-surface: #efe8df;
+  --color-surface-strong: #e7ded2;
+  --color-text: #191715;
+  --color-text-muted: #77716b;
+  --color-border: #ddd5cc;
+  --color-accent: #ed6c30;
+  --color-accent-text: #fffaf5;
+  --color-nav-bg: rgba(185, 172, 158, 0.90);
+  --color-nav-border: rgba(255, 255, 255, 0.35);
+  --color-nav-highlight: rgba(255, 255, 255, 0.90);
+  --color-positive: #4f7a5a;
+  --color-warning: #b5742c;
+  --shadow-soft: 0 1px 2px rgba(25, 23, 21, 0.04), 0 10px 30px rgba(25, 23, 21, 0.06);
+
+  /* Input tokens: Light */
+  --color-input-bg: #fffdfa;
+  --color-input-border: #ddd5cc;
+  --color-input-text: #191715;
+  --color-input-placeholder: #8c857e;
+  --color-input-focus-ring: rgba(237, 108, 48, 0.22);
+}
+
+/* ---- Dark baseline (used by Paper dark, ink, and system dark) ---- */
+[data-mode="dark"],
+[data-theme="paper"][data-mode="dark"] {
+  color-scheme: dark;
+  --color-bg: #141412;
+  --color-bg-elevated: #1b1b18;
+  --color-surface: #21211e;
+  --color-surface-strong: #292925;
+  --color-text: #f7f0e9;
+  --color-text-muted: #9e968c;
+  --color-border: #333128;
+  --color-accent: #ed6c30;
+  --color-accent-text: #1a1310;
+  --color-nav-bg: rgba(6, 6, 9, 0.94);
+  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-highlight: rgba(255, 255, 255, 0.20);
+  --color-positive: #7fae8c;
+  --color-warning: #d79a55;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  /* Input tokens: Dark - distinctly deep, crisp, sleek */
+  --color-input-bg: #10100e;
+  --color-input-border: #3a382e;
+  --color-input-text: #f7f0e9;
+  --color-input-placeholder: #7c756b;
+  --color-input-focus-ring: rgba(237, 108, 48, 0.30);
+}
+
+/* ---- INK theme: dark, restrained, sophisticated ---- */
+[data-theme="ink"] {
+  color-scheme: dark;
+  --color-bg: #0f0f12;
+  --color-bg-elevated: #16161a;
+  --color-surface: #1d1d23;
+  --color-surface-strong: #25252d;
+  --color-text: #eeeef0;
+  --color-text-muted: #9595a2;
+  --color-border: #2c2c37;
+  --color-accent: #8f93ff;
+  --color-accent-text: #0f0f14;
+  --color-nav-bg: rgba(5, 5, 8, 0.95);
+  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-highlight: rgba(255, 255, 255, 0.20);
+  --color-positive: #7bbf96;
+  --color-warning: #e0a85c;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  --color-input-bg: #0a0a0d;
+  --color-input-border: #343442;
+  --color-input-text: #eeeef0;
+  --color-input-placeholder: #70707e;
+  --color-input-focus-ring: rgba(143, 147, 255, 0.30);
+}
+
+/* ---- TERRA theme: earthy, warm, expressive ---- */
+[data-theme="terra"] {
+  color-scheme: light;
+  --color-bg: #f4e7da;
+  --color-bg-elevated: #fff8f1;
+  --color-surface: #ead9c7;
+  --color-surface-strong: #e0c7ae;
+  --color-text: #2d1d14;
+  --color-text-muted: #8a6b55;
+  --color-border: #d9bd9f;
+  --color-accent: #c1512d;
+  --color-accent-text: #fff6ef;
+  --color-nav-bg: rgba(182, 164, 146, 0.90);
+  --color-nav-border: rgba(255, 255, 255, 0.35);
+  --color-nav-highlight: rgba(255, 255, 255, 0.90);
+  --color-positive: #5c7a4c;
+  --color-warning: #a8671f;
+  --shadow-soft: 0 1px 2px rgba(45, 29, 20, 0.06), 0 10px 30px rgba(45, 29, 20, 0.08);
+
+  --color-input-bg: #fff8f1;
+  --color-input-border: #d9bd9f;
+  --color-input-text: #2d1d14;
+  --color-input-placeholder: #9c7b64;
+  --color-input-focus-ring: rgba(193, 81, 45, 0.22);
+}
+[data-theme="terra"][data-mode="dark"] {
+  color-scheme: dark;
+  --color-bg: #1a120d;
+  --color-bg-elevated: #231912;
+  --color-surface: #2b1f17;
+  --color-surface-strong: #35261d;
+  --color-text: #f4e7da;
+  --color-text-muted: #b59b85;
+  --color-border: #422f22;
+  --color-accent: #e07a4c;
+  --color-accent-text: #221209;
+  --color-nav-bg: rgba(8, 5, 3, 0.95);
+  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-highlight: rgba(255, 255, 255, 0.20);
+
+  --color-input-bg: #140d09;
+  --color-input-border: #4c3627;
+  --color-input-text: #f4e7da;
+  --color-input-placeholder: #8f7662;
+  --color-input-focus-ring: rgba(224, 122, 76, 0.30);
+}
+
+/* ---- MOSS theme: calm, natural, balanced ---- */
+[data-theme="moss"] {
+  color-scheme: light;
+  --color-bg: #eef0e6;
+  --color-bg-elevated: #f8faf3;
+  --color-surface: #e2e6d6;
+  --color-surface-strong: #d4dac2;
+  --color-text: #1e241b;
+  --color-text-muted: #6d7962;
+  --color-border: #c8cfb8;
+  --color-accent: #4c6b45;
+  --color-accent-text: #f4f8ee;
+  --color-nav-bg: rgba(174, 180, 162, 0.90);
+  --color-nav-border: rgba(255, 255, 255, 0.35);
+  --color-nav-highlight: rgba(255, 255, 255, 0.90);
+  --color-positive: #4c6b45;
+  --color-warning: #a87a2a;
+  --shadow-soft: 0 1px 2px rgba(30, 36, 27, 0.05), 0 10px 30px rgba(30, 36, 27, 0.08);
+
+  --color-input-bg: #f8faf3;
+  --color-input-border: #c8cfb8;
+  --color-input-text: #1e241b;
+  --color-input-placeholder: #7a866d;
+  --color-input-focus-ring: rgba(76, 107, 69, 0.22);
+}
+[data-theme="moss"][data-mode="dark"] {
+  color-scheme: dark;
+  --color-bg: #12160f;
+  --color-bg-elevated: #181d14;
+  --color-surface: #1e2419;
+  --color-surface-strong: #262e20;
+  --color-text: #e8ecdd;
+  --color-text-muted: #95a087;
+  --color-border: #2e3823;
+  --color-accent: #8bb37d;
+  --color-accent-text: #141a10;
+  --color-nav-bg: rgba(6, 8, 5, 0.95);
+  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-highlight: rgba(255, 255, 255, 0.20);
+
+  --color-input-bg: #0d110a;
+  --color-input-border: #364228;
+  --color-input-text: #e8ecdd;
+  --color-input-placeholder: #77836b;
+  --color-input-focus-ring: rgba(139, 179, 125, 0.30);
+}
