@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 // One check-in per day per visitor: if today's entry exists, it's updated
 // instead of duplicated.
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   const anonymousId = (body.anonymousId ?? "").toString();
   const checkinDate = (body.checkinDate ?? "").toString();
   if (!anonymousId || !checkinDate) {

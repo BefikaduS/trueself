@@ -16,7 +16,7 @@ function getCallerAnonymousId(req: NextRequest, body?: any): string {
 
 export async function PATCH(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
 
   const [existing] = await db.select().from(personalNotes).where(eq(personalNotes.id, id)).limit(1);
   if (!existing) return NextResponse.json({ error: "Note not found." }, { status: 404 });

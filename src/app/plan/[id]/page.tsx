@@ -30,12 +30,12 @@ export default function PlanPage({ params }: { params: Promise<{ id: string }> }
           fetch(`/api/reports/${id}/plan`),
         ]);
         if (!reportRes.ok) throw new Error();
-        const reportData = await reportRes.json();
-        const planData = await planRes.json();
+        const reportData = (await reportRes.json()) as { report: { analysis: AnalysisResult } };
+        const planData = (await planRes.json()) as { items?: PlanProgressRow[] };
         if (!active) return;
         setAnalysis(reportData.report.analysis);
         const map: Record<string, PlanItemState> = {};
-        (planData.items as PlanProgressRow[]).forEach((item) => {
+        ((planData.items || []) as PlanProgressRow[]).forEach((item) => {
           map[item.itemKey] = { completed: item.completed, skippedReason: item.skippedReason, note: item.note };
         });
         setProgress(map);

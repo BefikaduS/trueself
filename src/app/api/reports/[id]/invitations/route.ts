@@ -35,7 +35,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   const email = (body.email ?? "").toString().trim().toLowerCase().slice(0, 120);
   const name = (body.name ?? "").toString().trim().slice(0, 60);
   const permission = (body.permission ?? "blind").toString().trim();
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
 export async function PATCH(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   const inviteId = body.inviteId;
   const action = body.action;
 

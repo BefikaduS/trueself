@@ -25,7 +25,7 @@ export function GoDeeperPanel({ reportId }: { reportId: string }) {
     try {
       const res = await fetch(`/api/reports/${reportId}/deepen`, { method: "POST" });
       if (!res.ok) throw new Error();
-      const data = await res.json();
+      const data = (await res.json()) as { result: { questions: DeepenQuestion[] } };
       setQuestions(data.result.questions);
       setState("ready");
     } catch {

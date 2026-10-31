@@ -65,10 +65,10 @@ export default function AssessPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
+        const errorData = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(errorData.error || "Request failed");
       }
-      const data = await res.json();
+      const data = (await res.json()) as { id: string };
       if (slowTimer.current) clearTimeout(slowTimer.current);
       
       // Navigate to report immediately while keeping AnalyzingStep visible

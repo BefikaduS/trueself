@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   const [report] = await db.select({ id: reports.id }).from(reports).where(eq(reports.id, id)).limit(1);
   if (!report) return NextResponse.json({ error: "This invitation link is no longer valid." }, { status: 404 });
 
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   const fromName = (body.fromName ?? "").toString().trim().slice(0, 60);
   const underestimatedStrength = (body.underestimatedStrength ?? "").toString().trim().slice(0, 400);
   const deservesMoreCredit = (body.deservesMoreCredit ?? "").toString().trim().slice(0, 400);

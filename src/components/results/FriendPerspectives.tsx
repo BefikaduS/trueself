@@ -107,7 +107,7 @@ export function FriendPerspectives({ reportId }: { reportId: string }) {
     const fetchInvites = (silent = false) => {
       fetch(`/api/reports/${reportId}/invitations`)
         .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
+        .then((data: any) => {
           if (cancelled || !data) return;
           const list: FriendInvitation[] = data.invitations || [];
 
@@ -150,7 +150,7 @@ export function FriendPerspectives({ reportId }: { reportId: string }) {
   useEffect(() => {
     fetch(`/api/reports/${reportId}/friend`)
       .then((r) => r.json())
-      .then((d) => setItems(d.perspectives || []))
+      .then((d: any) => setItems(d.perspectives || []))
       .catch(() => setItems([]));
   }, [reportId]);
 
@@ -185,11 +185,11 @@ export function FriendPerspectives({ reportId }: { reportId: string }) {
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
+        const errData = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(errData.error || "Failed to create invitation");
       }
 
-      const { invitation } = await res.json();
+      const { invitation } = (await res.json()) as { invitation: FriendInvitation };
       const displayName = invitation.name || invitation.email;
       const inviteUrl = getInviteLink(invitation.id, invitation.name, invitation.permission);
 

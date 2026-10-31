@@ -31,8 +31,8 @@ export function AskTrueself({ reportId }: { reportId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reportId, question: q }),
       });
-      const data = await res.json();
-      setHistory((h) => [...h, { question: q, answer: data.answer }]);
+      const data = (await res.json()) as { answer?: string };
+      setHistory((h) => [...h, { question: q, answer: data.answer || "" }]);
       setQuestion("");
     } finally {
       setLoading(false);

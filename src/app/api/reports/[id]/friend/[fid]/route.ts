@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string; fid: string }> };
 // The report owner toggles whether a received perspective is revealed/saved.
 export async function PATCH(req: NextRequest, { params }: Params) {
   const { fid } = await params;
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   if (typeof body.revealed !== "boolean") {
     return NextResponse.json({ error: "revealed boolean is required." }, { status: 400 });
   }

@@ -39,7 +39,7 @@ export default function NotesPage() {
   const load = () => {
     fetch(`/api/notes?anonymousId=${encodeURIComponent(getAnonymousId())}`)
       .then((r) => r.json())
-      .then((d) => setNotes(d.notes || []))
+      .then((d: any) => setNotes(d.notes || []))
       .catch(() => setNotes([]));
   };
 

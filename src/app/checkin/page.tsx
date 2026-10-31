@@ -35,7 +35,7 @@ export default function CheckinPage() {
     const anonymousId = getAnonymousId();
     fetch(`/api/checkins?anonymousId=${encodeURIComponent(anonymousId)}`)
       .then((res) => (res.ok ? res.json() : { checkins: [] }))
-      .then((data) => {
+      .then((data: any) => {
         const list: DailyCheckin[] = data.checkins || [];
         setCheckins(list);
         const match = list.find((c) => c.checkinDate === selectedDate);

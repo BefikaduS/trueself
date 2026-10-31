@@ -40,7 +40,7 @@ async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<unk
       throw new Error(`OpenAI request failed (${res.status}): ${text.slice(0, 300)}`);
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const content = data?.choices?.[0]?.message?.content;
     if (!content || typeof content !== "string") {
       throw new Error("OpenAI response did not include message content");

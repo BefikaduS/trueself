@@ -96,7 +96,7 @@ their report, acknowledge their own read is more authoritative than the inferenc
     });
     clearTimeout(timeout);
     if (!res.ok) throw new Error(`Ask request failed (${res.status})`);
-    const data = await res.json();
+    const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const answer = data?.choices?.[0]?.message?.content?.trim();
     if (!answer) throw new Error("Empty answer from model");
     return NextResponse.json({ answer, source: "ai" });

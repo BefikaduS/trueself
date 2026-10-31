@@ -94,7 +94,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
         if (!res.ok) throw new Error("Failed to load");
         return res.json();
       })
-      .then((data) => {
+      .then((data: any) => {
         if (data.report) {
           setReport(data.report);
         } else {

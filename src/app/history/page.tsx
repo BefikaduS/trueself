@@ -26,7 +26,7 @@ export default function HistoryPage() {
         if (!res.ok) throw new Error("Failed to load reports");
         return res.json();
       })
-      .then((data) => {
+      .then((data: any) => {
         setReports(data.reports || []);
         setLoading(false);
       })

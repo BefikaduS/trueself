@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 // exactly what the user set.
 export async function POST(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   if (!body.weights || typeof body.weights !== "object") {
     return NextResponse.json({ error: "weights object is required." }, { status: 400 });
   }

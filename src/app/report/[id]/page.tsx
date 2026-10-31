@@ -40,7 +40,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
       try {
         const res = await fetch(`/api/reports/${id}`);
         if (!res.ok) throw new Error();
-        const data = await res.json();
+        const data = (await res.json()) as { report: ReportRow };
         if (active) {
           setReport(data.report);
           setState("ready");

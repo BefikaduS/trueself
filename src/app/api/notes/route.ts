@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   const anonymousId = (body.anonymousId ?? "").toString();
   const title = (body.title ?? "").toString().trim().slice(0, 120);
   const bodyText = (body.body ?? "").toString().trim().slice(0, 2000);

@@ -15,7 +15,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 // experiment). Missing a day never produces an error — it's just a note.
 export async function POST(req: NextRequest, { params }: Params) {
   const { id } = await params;
-  const body = await req.json().catch(() => ({}));
+  const body = (await req.json().catch(() => ({}))) as Record<string, any>;
   const itemKey = (body.itemKey ?? "").toString();
   if (!itemKey) return NextResponse.json({ error: "itemKey is required." }, { status: 400 });
 

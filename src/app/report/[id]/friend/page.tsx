@@ -39,7 +39,7 @@ export default function FriendPerspectivePage({ params }: { params: Promise<{ id
   useEffect(() => {
     fetch(`/api/reports/${id}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+      .then((data: any) => {
         if (data?.report) {
           setReportOwnerName(data.report.name || "A friend");
           if (permParam === "full") {

@@ -23,8 +23,8 @@ export default function CompassPage({ params }: { params: Promise<{ id: string }
       try {
         const [reportRes, compassRes] = await Promise.all([fetch(`/api/reports/${id}`), fetch(`/api/reports/${id}/compass`)]);
         if (!reportRes.ok) throw new Error();
-        const reportData = await reportRes.json();
-        const compassData = await compassRes.json();
+        const reportData = (await reportRes.json()) as { report: { answers: SubmittedAnswer[] } };
+        const compassData = (await compassRes.json()) as { weights?: Record<string, number> | null };
         if (!active) return;
         const saved = compassData.weights as Record<string, number> | null;
         setWeights(saved ?? suggestValueWeights(reportData.report.answers as SubmittedAnswer[]));
