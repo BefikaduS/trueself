@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => ({}));
+  const body: any = await req.json().catch(() => ({}));
   const reportId = (body.reportId ?? "").toString();
   const question = (body.question ?? "").toString().trim().slice(0, 500);
   if (!reportId || !question) {

@@ -327,7 +327,12 @@ export class LocalStore {
   }
 }
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl =
+  (typeof process !== "undefined" &&
+    (process.env.HYPERDRIVE_URL ||
+      (process.env as any).HYPERDRIVE?.connectionString ||
+      process.env.DATABASE_URL)) ||
+  "";
 
 function isConnectionError(err: any): boolean {
   if (!err) return false;
