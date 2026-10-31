@@ -11,6 +11,7 @@
 /.open-next/
 /out/
 /build
+AGENTS.md
 
 # Local data & fallback storage
 .trueself-data.json
