@@ -53,9 +53,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (callerId && existing.anonymousId && callerId !== existing.anonymousId) {
       return NextResponse.json({ error: "Unauthorized to modify this report." }, { status: 403 });
     }
+    if (typeof body.isArchived === "boolean" && (!callerId || callerId !== existing.anonymousId)) {
+      return NextResponse.json(
+        { error: "Unauthorized: You can only archive your own reports." },
+        { status: 403 }
+      );
+    }
 
     const update: Partial<typeof reports.$inferInsert> = { updatedAt: new Date() };
     if (typeof body.patternConfirmed === "boolean") update.patternConfirmed = body.patternConfirmed;
+    if (typeof body.isArchived === "boolean") {
+      update.isArchived = body.isArchived;
+      update.archivedAt = body.isArchived ? new Date() : null;
+    }
 
     const [row] = await db.update(reports).set(update).where(eq(reports.id, id)).returning();
     return NextResponse.json({ report: row });

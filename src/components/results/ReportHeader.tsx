@@ -1,17 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "../common/Icon";
 import { Button } from "../common/Button";
 import { Modal } from "../common/Modal";
 import { useToast } from "../common/Toast";
+import { getAnonymousId } from "@/lib/anonymous";
 
-export function ReportHeader({ id, name, isDemo }: { id: string; name: string; isDemo: boolean }) {
+export function ReportHeader({
+  id,
+  name,
+  isDemo,
+  isArchived = false,
+  anonymousId: reportAnonymousId,
+  onArchivedChange,
+}: {
+  id: string;
+  name: string;
+  isDemo: boolean;
+  isArchived?: boolean;
+  anonymousId?: string;
+  onArchivedChange?: (archived: boolean) => void;
+}) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [currentAnonymousId] = useState(() =>
+    typeof window !== "undefined" ? getAnonymousId() : ""
+  );
   const { show } = useToast();
   const router = useRouter();
+
+  const isOwner = Boolean(
+    currentAnonymousId && reportAnonymousId && currentAnonymousId === reportAnonymousId
+  );
 
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
@@ -47,8 +72,77 @@ export function ReportHeader({ id, name, isDemo }: { id: string; name: string; i
     }
   };
 
+  const handleToggleArchive = async () => {
+    if (!isOwner || isArchiving) return;
+    setIsArchiving(true);
+    try {
+      const nextArchived = !isArchived;
+      const res = await fetch(`/api/reports/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-anonymous-id": currentAnonymousId,
+        },
+        body: JSON.stringify({ isArchived: nextArchived, anonymousId: currentAnonymousId }),
+      });
+      if (!res.ok) throw new Error("Failed to update report");
+      onArchivedChange?.(nextArchived);
+      show(
+        nextArchived
+          ? "Reflection archived. It is hidden from your active history."
+          : "Reflection restored to active.",
+        "success"
+      );
+    } catch {
+      show("Could not update archival status. Please try again.", "error");
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const handleDeletePermanent = async () => {
+    if (!isOwner || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/reports/${id}?anonymousId=${encodeURIComponent(currentAnonymousId)}`, {
+        method: "DELETE",
+        headers: {
+          "x-anonymous-id": currentAnonymousId,
+        },
+      });
+      if (!res.ok) throw new Error("Failed to delete report");
+      setDeleteModalOpen(false);
+      show("Reflection permanently deleted.", "default");
+      router.push("/history");
+    } catch {
+      show("Could not delete reflection. Please try again.", "error");
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="mb-10 flex flex-col gap-5">
+      {isArchived && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-[var(--color-text)]">
+          <div className="flex items-center gap-2">
+            <Icon name="archive-down" size={18} className="shrink-0 text-amber-500" />
+            <span>
+              <strong>Archived:</strong> This reflection is stored in your personal archive and hidden from your active history.
+            </span>
+          </div>
+          {isOwner && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleToggleArchive}
+              disabled={isArchiving}
+            >
+              <Icon name="refresh" size={14} /> Restore reflection
+            </Button>
+          )}
+        </div>
+      )}
+
       {isDemo && (
         <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-text-muted)]">
           <Icon name="info-circle" size={16} className="mt-0.5 shrink-0" />
@@ -68,7 +162,7 @@ export function ReportHeader({ id, name, isDemo }: { id: string; name: string; i
         </h1>
       </div>
 
-      <div className="flex flex-wrap gap-2.5">
+      <div className="flex flex-wrap items-center gap-2.5">
         <Link href={`/plan/${id}`}>
           <Button size="sm" variant="secondary">
             <Icon name="checklist" size={16} /> Improvement plan
@@ -90,6 +184,30 @@ export function ReportHeader({ id, name, isDemo }: { id: string; name: string; i
             <Icon name="clock-circle" size={16} /> My reports
           </Button>
         </Link>
+
+        {isOwner && (
+          <div className="flex items-center gap-2 sm:ml-auto">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleToggleArchive}
+              disabled={isArchiving}
+              title={isArchived ? "Restore to active reflections" : "Archive this reflection"}
+            >
+              <Icon name={isArchived ? "refresh" : "archive-down"} size={15} />
+              {isArchived ? "Restore" : "Archive"}
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => setDeleteModalOpen(true)}
+              title="Permanently delete this reflection"
+            >
+              <Icon name="trash-bin-trash" size={15} />
+              Delete
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Share Popover / Modal */}
@@ -187,6 +305,44 @@ export function ReportHeader({ id, name, isDemo }: { id: string; name: string; i
                 LinkedIn
               </a>
             </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => !isDeleting && setDeleteModalOpen(false)}
+        title="Delete reflection permanently?"
+      >
+        <div className="flex flex-col gap-4 pt-2">
+          <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
+            Are you sure you want to permanently delete{" "}
+            <strong className="text-[var(--color-text)]">{name}&rsquo;s reflection</strong>?
+          </p>
+          <div className="rounded-[var(--radius-md)] border border-rose-500/20 bg-rose-500/5 p-3.5 text-xs text-[var(--color-text-muted)] leading-relaxed">
+            This will permanently erase your psychological portrait, values compass, action plan progress,
+            and any received friend perspectives. This action cannot be undone.
+          </div>
+
+          <div className="mt-2 flex flex-wrap justify-end gap-2.5">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              Keep reflection
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={handleDeletePermanent}
+              disabled={isDeleting}
+            >
+              <Icon name="trash-bin-trash" size={15} />
+              {isDeleting ? "Deleting..." : "Delete permanently"}
+            </Button>
           </div>
         </div>
       </Modal>

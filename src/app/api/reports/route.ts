@@ -94,6 +94,8 @@ export async function GET(req: NextRequest) {
       name: reports.name,
       analysis: reports.analysis,
       isDemo: reports.isDemo,
+      isArchived: reports.isArchived,
+      archivedAt: reports.archivedAt,
       createdAt: reports.createdAt,
     })
     .from(reports)
@@ -105,6 +107,8 @@ export async function GET(req: NextRequest) {
       id: r.id,
       name: r.name,
       isDemo: r.isDemo,
+      isArchived: r.isArchived ?? false,
+      archivedAt: r.archivedAt,
       createdAt: r.createdAt,
       portraitTitle: (r.analysis as { portrait?: { summary?: string } })?.portrait?.summary?.slice(0, 120) ?? "",
     })),

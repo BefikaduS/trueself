@@ -23,9 +23,12 @@ import { FriendPerspectives } from "@/components/results/FriendPerspectives";
 
 interface ReportRow {
   id: string;
+  anonymousId: string;
   name: string;
   analysis: AnalysisResult;
   isDemo: boolean;
+  isArchived: boolean;
+  archivedAt?: string | null;
   patternConfirmed: boolean | null;
 }
 
@@ -91,7 +94,14 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-14">
-      <ReportHeader id={report.id} name={report.name} isDemo={report.isDemo} />
+      <ReportHeader
+        id={report.id}
+        name={report.name}
+        isDemo={report.isDemo}
+        isArchived={report.isArchived ?? false}
+        anonymousId={report.anonymousId}
+        onArchivedChange={(archived) => setReport((r) => (r ? { ...r, isArchived: archived } : r))}
+      />
       <PortraitSection data={analysis.portrait} />
       <HonestTruthSection data={analysis.honestTruth} />
       <StrengthSection data={analysis.strength} />
