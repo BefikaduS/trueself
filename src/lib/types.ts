@@ -107,6 +107,9 @@ export interface ReportRecord {
 export type ThemeId = "paper" | "ink" | "terra" | "moss";
 export type ColorMode = "system" | "light" | "dark";
 export type FontPairingId = "editorial" | "literary" | "modern" | "humanist";
+export type RadiusScale = "sharp" | "balanced" | "soft";
+export type GlassIntensity = "subtle" | "balanced" | "deep";
+export type MotionPreference = "fluid" | "reduced";
 
 export const VALUE_DIMENSIONS = [
   "Independence",

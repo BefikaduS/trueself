@@ -115,7 +115,7 @@ export function LogoWordmark({
     <span
       className={`font-editorial font-semibold tracking-[-0.015em] text-[var(--color-text)] ${textClass} ${className}`}
     >
-      Trueself
+      Trueself<span className="text-[var(--color-accent)] font-serif">.</span>
     </span>
   );
 }

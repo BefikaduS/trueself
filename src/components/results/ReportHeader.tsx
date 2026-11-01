@@ -26,6 +26,7 @@ export function ReportHeader({
 }) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
   const [currentAnonymousId] = useState(() =>
@@ -190,7 +191,13 @@ export function ReportHeader({
             <Button
               size="sm"
               variant="secondary"
-              onClick={handleToggleArchive}
+              onClick={() => {
+                if (isArchived) {
+                  handleToggleArchive();
+                } else {
+                  setArchiveModalOpen(true);
+                }
+              }}
               disabled={isArchiving}
               title={isArchived ? "Restore to active reflections" : "Archive this reflection"}
             >
@@ -305,6 +312,47 @@ export function ReportHeader({
                 LinkedIn
               </a>
             </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Archive Confirmation Modal */}
+      <Modal
+        open={archiveModalOpen}
+        onClose={() => !isArchiving && setArchiveModalOpen(false)}
+        title="Archive this reflection?"
+      >
+        <div className="flex flex-col gap-4 pt-2">
+          <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
+            Are you sure you want to archive{" "}
+            <strong className="text-[var(--color-text)]">{name}&rsquo;s reflection</strong>?
+          </p>
+          <div className="rounded-[var(--radius-md)] border border-amber-500/20 bg-amber-500/5 p-3.5 text-xs text-[var(--color-text-muted)] leading-relaxed">
+            Archiving moves this reflection out of your active history. It will remain securely stored in your personal
+            archive and can be restored at any time.
+          </div>
+
+          <div className="mt-2 flex flex-wrap justify-end gap-2.5">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setArchiveModalOpen(false)}
+              disabled={isArchiving}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={async () => {
+                await handleToggleArchive();
+                setArchiveModalOpen(false);
+              }}
+              disabled={isArchiving}
+            >
+              <Icon name="archive-down" size={15} />
+              {isArchiving ? "Archiving..." : "Archive reflection"}
+            </Button>
           </div>
         </div>
       </Modal>

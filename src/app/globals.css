@@ -44,6 +44,73 @@
   --font-active-interface: var(--font-interface-manrope), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* =========================================================================
+   DYNAMIC RADIUS SCALES
+   ========================================================================= */
+
+[data-radius="sharp"] {
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+}
+
+:root,
+[data-radius="balanced"] {
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+[data-radius="soft"] {
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
+}
+
+/* =========================================================================
+   CLICKABLE INTERACTIVE CURSOR
+   ========================================================================= */
+
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="color"],
+input[type="range"],
+select,
+summary,
+a,
+label[for],
+.clickable {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* =========================================================================
+   REDUCED MOTION OVERRIDE
+   ========================================================================= */
+
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 * {
   box-sizing: border-box;
 }

@@ -12,7 +12,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 ease-[var(--ease-standard)] disabled:opacity-45 disabled:pointer-events-none select-none active:scale-[0.98]";
+  "inline-flex items-center justify-center gap-2 font-medium cursor-pointer transition-all duration-200 ease-[var(--ease-standard)] disabled:opacity-45 disabled:pointer-events-none select-none active:scale-[0.98]";
 
 const variants: Record<Variant, string> = {
   primary: "bg-[var(--color-accent)] text-[var(--color-accent-text)] hover:brightness-105 shadow-[var(--shadow-soft)]",

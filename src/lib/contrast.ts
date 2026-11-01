@@ -1,7 +1,7 @@
 // Small relative-luminance contrast helper so a custom accent color never
 // makes accent-colored text unreadable. Returns a foreground color
 // ("#191715" or "#FFFFFF" style tokens) with sufficient contrast.
-function hexToRgb(hex: string): [number, number, number] | null {
+export function hexToRgb(hex: string): [number, number, number] | null {
   const clean = hex.replace("#", "").trim();
   const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
   if (!/^[0-9a-fA-F]{6}$/.test(full)) return null;
