@@ -27,6 +27,12 @@
   --radius-xl: 28px;
   --radius-full: 999px;
 
+  /* ---- Glass Refraction default tokens ---- */
+  --glass-blur: 26px;
+  --glass-saturate: 180%;
+  --glass-contrast: 104%;
+  --glass-specular-opacity: 0.75;
+
   --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
 
