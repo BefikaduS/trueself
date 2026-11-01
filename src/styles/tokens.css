@@ -41,8 +41,8 @@
   --color-border: #2c2c37;
   --color-accent: #8f93ff;
   --color-accent-text: #0f0f14;
-  --color-nav-bg: rgba(5, 5, 8, 0.95);
-  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 80%, rgba(255, 255, 255, 0.04));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 60%, rgba(255, 255, 255, 0.12));
   --color-nav-highlight: rgba(255, 255, 255, 0.20);
   --color-positive: #7bbf96;
   --color-warning: #e0a85c;
@@ -67,9 +67,9 @@
   --color-border: #ddd5cc;
   --color-accent: #ed6c30;
   --color-accent-text: #fffaf5;
-  --color-nav-bg: rgba(255, 255, 255, 0.72);
-  --color-nav-border: rgba(255, 255, 255, 0.80);
-  --color-nav-highlight: rgba(255, 255, 255, 0.95);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 55%, rgba(255, 255, 255, 0.78));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 40%, rgba(255, 255, 255, 0.70));
+  --color-nav-highlight: rgba(255, 255, 255, 0.90);
   --color-positive: #4f7a5a;
   --color-warning: #b5742c;
   --shadow-soft: 0 1px 2px rgba(25, 23, 21, 0.04), 0 10px 30px rgba(25, 23, 21, 0.06);
@@ -95,8 +95,8 @@
   --color-border: #333128;
   --color-accent: #ed6c30;
   --color-accent-text: #1a1310;
-  --color-nav-bg: rgba(6, 6, 9, 0.94);
-  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 80%, rgba(255, 255, 255, 0.04));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 60%, rgba(255, 255, 255, 0.12));
   --color-nav-highlight: rgba(255, 255, 255, 0.20);
   --color-positive: #7fae8c;
   --color-warning: #d79a55;
@@ -122,8 +122,8 @@
   --color-border: #2c2c37;
   --color-accent: #8f93ff;
   --color-accent-text: #0f0f14;
-  --color-nav-bg: rgba(5, 5, 8, 0.95);
-  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 80%, rgba(255, 255, 255, 0.04));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 60%, rgba(255, 255, 255, 0.12));
   --color-nav-highlight: rgba(255, 255, 255, 0.20);
   --color-positive: #7bbf96;
   --color-warning: #e0a85c;
@@ -148,9 +148,9 @@
   --color-border: #d9bd9f;
   --color-accent: #c1512d;
   --color-accent-text: #fff6ef;
-  --color-nav-bg: rgba(255, 250, 245, 0.75);
-  --color-nav-border: rgba(255, 255, 255, 0.80);
-  --color-nav-highlight: rgba(255, 255, 255, 0.95);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 55%, rgba(255, 255, 255, 0.78));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 40%, rgba(255, 255, 255, 0.70));
+  --color-nav-highlight: rgba(255, 255, 255, 0.90);
   --color-positive: #5c7a4c;
   --color-warning: #a8671f;
   --shadow-soft: 0 1px 2px rgba(45, 29, 20, 0.06), 0 10px 30px rgba(45, 29, 20, 0.08);
@@ -172,8 +172,8 @@
   --color-border: #422f22;
   --color-accent: #e07a4c;
   --color-accent-text: #221209;
-  --color-nav-bg: rgba(8, 5, 3, 0.95);
-  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 80%, rgba(255, 255, 255, 0.04));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 60%, rgba(255, 255, 255, 0.12));
   --color-nav-highlight: rgba(255, 255, 255, 0.20);
 
   --color-input-bg: #140d09;
@@ -195,9 +195,9 @@
   --color-border: #c8cfb8;
   --color-accent: #4c6b45;
   --color-accent-text: #f4f8ee;
-  --color-nav-bg: rgba(250, 252, 246, 0.75);
-  --color-nav-border: rgba(255, 255, 255, 0.80);
-  --color-nav-highlight: rgba(255, 255, 255, 0.95);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 55%, rgba(255, 255, 255, 0.78));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 40%, rgba(255, 255, 255, 0.70));
+  --color-nav-highlight: rgba(255, 255, 255, 0.90);
   --color-positive: #4c6b45;
   --color-warning: #a87a2a;
   --shadow-soft: 0 1px 2px rgba(30, 36, 27, 0.05), 0 10px 30px rgba(30, 36, 27, 0.08);
@@ -219,8 +219,8 @@
   --color-border: #2e3823;
   --color-accent: #8bb37d;
   --color-accent-text: #141a10;
-  --color-nav-bg: rgba(6, 8, 5, 0.95);
-  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-bg: color-mix(in srgb, var(--color-bg) 80%, rgba(255, 255, 255, 0.04));
+  --color-nav-border: color-mix(in srgb, var(--color-border) 60%, rgba(255, 255, 255, 0.12));
   --color-nav-highlight: rgba(255, 255, 255, 0.20);
 
   --color-input-bg: #0d110a;
