@@ -144,46 +144,7 @@ export function ReportHeader({
 
   return (
     <div className="mb-10 flex flex-col gap-5">
-      {isArchived && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-[var(--color-text)]">
-          <div className="flex items-center gap-2">
-            <Icon name="archive-down" size={18} className="shrink-0 text-amber-500" />
-            <span>
-              <strong>Archived:</strong> This reflection is stored in your personal archive and hidden from your active history.
-            </span>
-          </div>
-          {isOwner && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={handleToggleArchive}
-              disabled={isArchiving}
-            >
-              <Icon name="refresh" size={14} /> Restore reflection
-            </Button>
-          )}
-        </div>
-      )}
-
-      {isDemo && (
-        <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-text-muted)]">
-          <Icon name="info-circle" size={16} className="mt-0.5 shrink-0" />
-          <span>
-            AI analysis isn&rsquo;t connected in this environment, so this is a{" "}
-            <strong className="text-[var(--color-text)]">demo analysis</strong> generated directly from your actual answers — not a fabricated AI result.
-          </span>
-        </div>
-      )}
-
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-          {name}&rsquo;s reflection
-        </p>
-        <h1 className="mt-2 font-editorial text-4xl sm:text-5xl text-[var(--color-text)]">
-          Here&rsquo;s what your answers reveal.
-        </h1>
-      </div>
-
+      {/* Top Action Bar: Back to reports & 3-Dot Kebab Menu positioned at the very top */}
       <div className="flex items-center justify-between gap-4">
         <Link
           href="/history"
@@ -194,7 +155,7 @@ export function ReportHeader({
         </Link>
 
         {/* 3-Dot Actions Menu */}
-        <div className="relative" data-report-menu>
+        <div className="relative z-30" data-report-menu>
           <button
             type="button"
             onClick={(e) => {
@@ -211,7 +172,7 @@ export function ReportHeader({
 
           {menuOpen && (
             <div
-              className="absolute right-0 top-full z-40 mt-2 min-w-[230px] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-strong)] p-1.5 shadow-xl backdrop-blur-xl"
+              className="absolute right-0 top-full z-50 mt-2 min-w-[230px] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-strong)] p-1.5 shadow-2xl backdrop-blur-xl"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -325,6 +286,46 @@ export function ReportHeader({
             </div>
           )}
         </div>
+      </div>
+
+      {isArchived && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-[var(--color-text)]">
+          <div className="flex items-center gap-2">
+            <Icon name="archive-down" size={18} className="shrink-0 text-amber-500" />
+            <span>
+              <strong>Archived:</strong> This reflection is stored in your personal archive and hidden from your active history.
+            </span>
+          </div>
+          {isOwner && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleToggleArchive}
+              disabled={isArchiving}
+            >
+              <Icon name="refresh" size={14} /> Restore reflection
+            </Button>
+          )}
+        </div>
+      )}
+
+      {isDemo && (
+        <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-sm text-[var(--color-text-muted)]">
+          <Icon name="info-circle" size={16} className="mt-0.5 shrink-0 text-[var(--color-accent)]" />
+          <span>
+            AI analysis isn&rsquo;t connected in this environment, so this is a{" "}
+            <strong className="text-[var(--color-text)]">demo analysis</strong> generated directly from your actual answers — not a fabricated AI result.
+          </span>
+        </div>
+      )}
+
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-accent)]">
+          {name}&rsquo;s reflection
+        </p>
+        <h1 className="mt-2 font-editorial text-4xl sm:text-5xl text-[var(--color-text)]">
+          Here&rsquo;s what your answers reveal.
+        </h1>
       </div>
 
       {/* Share Popover / Modal */}
