@@ -62,6 +62,10 @@ export async function POST(req: NextRequest) {
       })
       .returning();
 
+    if (!row || !row.id) {
+      throw new Error("Database failed to return inserted report record.");
+    }
+
     await db
       .insert(reportCounters)
       .values({ anonymousId, totalReports: 1 })

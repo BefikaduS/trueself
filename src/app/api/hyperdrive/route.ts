@@ -1,51 +1,25 @@
 import { NextResponse } from "next/server";
-import { Client } from "pg";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { db } from "@/db";
+import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  let connectionString =
-    process.env.HYPERDRIVE_URL || process.env.DATABASE_URL || "";
-
   try {
-    const cf = await getCloudflareContext();
-    if ((cf?.env as any)?.HYPERDRIVE?.connectionString) {
-      connectionString = (cf.env as any).HYPERDRIVE.connectionString;
-    }
-  } catch {
-    // Falls back to environment variables when running in standard local development
-  }
-
-  if (!connectionString) {
-    return NextResponse.json(
-      { error: "No database connection string found in env.HYPERDRIVE or DATABASE_URL" },
-      { status: 500 }
-    );
-  }
-
-  const client = new Client({ connectionString });
-
-  try {
-    await client.connect();
-    // Sample SQL query
-    const result = await client.query("SELECT * FROM pg_tables LIMIT 50;");
-    await client.end();
-
+    // Minimal safe ping verifying Hyperdrive connection without exposing tables or secrets
+    await db.execute(sql`SELECT 1`);
     return NextResponse.json({
-      success: true,
-      result: result.rows,
+      status: "connected",
+      message: "Hyperdrive database connection verified",
     });
-  } catch (e: any) {
-    try {
-      await client.end();
-    } catch {
-      // ignore
-    }
+  } catch (error) {
+    console.error("[Hyperdrive Diagnostic] Connection check failed:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : String(e) },
-      { status: 500 }
+      {
+        status: "unavailable",
+        message: "Database connection failed",
+      },
+      { status: 503 }
     );
   }
 }
-

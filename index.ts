@@ -3,19 +3,21 @@ import { Client } from "pg";
 
 export default {
   async fetch(request, env, ctx) {
-    // Hyperdrive provides a unique generated connection string to connect to
-    // your database via Hyperdrive that can be used with your existing tools
-    const client = new Client({ connectionString: env.HYPERDRIVE.connectionString });
+    const connectionString = env?.HYPERDRIVE?.connectionString || process.env.DATABASE_URL;
+    if (!connectionString) {
+      return Response.json({ error: "No connection string found" }, { status: 500 });
+    }
+
+    const client = new Client({ connectionString });
     await client.connect();
 
     try {
-      // Sample SQL query
-      const result = await client.query("SELECT * FROM pg_tables");
-
-      return Response.json({result: result.rows});
+      await client.query("SELECT 1");
+      await client.end();
+      return Response.json({ status: "connected" });
     } catch (e) {
-      return Response.json({ error: e instanceof Error ? e.message : e }, { status: 500 });
+      try { await client.end(); } catch {}
+      return Response.json({ error: e instanceof Error ? e.message : "Database connection error" }, { status: 500 });
     }
   },
-}
-
+};
