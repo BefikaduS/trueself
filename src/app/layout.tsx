@@ -17,8 +17,8 @@ import "./globals.css";
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trueself.me";
 
 export const viewport: Viewport = {
-  themeColor: "#ED6C30",
-  colorScheme: "light dark",
+  themeColor: "#0f0f12",
+  colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
 };
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     ],
   },
   other: {
-    "theme-color": "#ED6C30",
+    "theme-color": "#0f0f12",
   },
 };
 
@@ -93,32 +93,40 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
+      data-theme="ink"
+      data-mode="dark"
       data-scroll-behavior="smooth"
       className={`${fontManrope.variable} ${fontInstrumentSerif.variable} ${fontNewsreader.variable} ${fontFraunces.variable} ${fontPlusJakarta.variable} ${fontDMSans.variable} ${fontCaveat.variable}`}
       suppressHydrationWarning
+      style={{ backgroundColor: "#0f0f12", color: "#eeeef0" }}
     >
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function() {
               try {
-                var raw = localStorage.getItem("trueself-appearance");
+                var raw = localStorage.getItem("trueself.appearance") || localStorage.getItem("trueself-appearance");
                 if (raw) {
                   var data = JSON.parse(raw);
                   var state = data && data.state;
                   if (state) {
-                    if (state.theme) document.documentElement.setAttribute("data-theme", state.theme);
+                    var theme = state.theme || "ink";
+                    document.documentElement.setAttribute("data-theme", theme);
                     if (state.fontPairing) document.documentElement.setAttribute("data-font-pairing", state.fontPairing);
-                    var mode = state.mode || "system";
+                    var mode = state.mode || (theme === "ink" ? "dark" : "system");
                     var resolved = mode === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : mode;
                     document.documentElement.setAttribute("data-mode", resolved);
                     document.documentElement.style.colorScheme = resolved;
                     if (state.customAccent) {
                       document.documentElement.style.setProperty("--color-accent", state.customAccent);
                     }
+                    return;
                   }
                 }
               } catch (e) {}
+              document.documentElement.setAttribute("data-theme", "ink");
+              document.documentElement.setAttribute("data-mode", "dark");
+              document.documentElement.style.colorScheme = "dark";
             })();`,
           }}
         />

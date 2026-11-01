@@ -17,8 +17,8 @@ interface AppearanceState {
 }
 
 const DEFAULTS = {
-  theme: "paper" as ThemeId,
-  mode: "system" as ColorMode,
+  theme: "ink" as ThemeId,
+  mode: "dark" as ColorMode,
   customAccent: null,
   fontPairing: "editorial" as FontPairingId,
 };

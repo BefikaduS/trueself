@@ -6,7 +6,7 @@
 */
 
 :root,
-[data-theme="paper"] {
+[data-theme="ink"] {
   /* ---- Base spacing & radius scale (4px increments) ---- */
   --space-1: 4px;
   --space-2: 8px;
@@ -30,7 +30,33 @@
   --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* ---- PAPER theme (default light) ---- */
+  /* ---- INK theme (default dark, restrained, sophisticated) ---- */
+  color-scheme: dark;
+  --color-bg: #0f0f12;
+  --color-bg-elevated: #16161a;
+  --color-surface: #1d1d23;
+  --color-surface-strong: #25252d;
+  --color-text: #eeeef0;
+  --color-text-muted: #9595a2;
+  --color-border: #2c2c37;
+  --color-accent: #8f93ff;
+  --color-accent-text: #0f0f14;
+  --color-nav-bg: rgba(5, 5, 8, 0.95);
+  --color-nav-border: rgba(255, 255, 255, 0.12);
+  --color-nav-highlight: rgba(255, 255, 255, 0.20);
+  --color-positive: #7bbf96;
+  --color-warning: #e0a85c;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.55);
+
+  --color-input-bg: #0a0a0d;
+  --color-input-border: #343442;
+  --color-input-text: #eeeef0;
+  --color-input-placeholder: #70707e;
+  --color-input-focus-ring: rgba(143, 147, 255, 0.30);
+}
+
+/* ---- PAPER theme (explicit light option) ---- */
+[data-theme="paper"] {
   color-scheme: light;
   --color-bg: #f7f0e9;
   --color-bg-elevated: #fffdfa;

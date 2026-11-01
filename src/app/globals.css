@@ -49,6 +49,9 @@
 }
 
 html {
+  background-color: #0f0f12;
+  color: #eeeef0;
+  color-scheme: dark;
   scroll-behavior: smooth;
   scroll-padding-top: 5.5rem;
 }
