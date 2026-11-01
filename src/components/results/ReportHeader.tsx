@@ -27,6 +27,7 @@ export function ReportHeader({
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
   const [currentAnonymousId] = useState(() =>
@@ -38,6 +39,26 @@ export function ReportHeader({
   const isOwner = Boolean(
     currentAnonymousId && reportAnonymousId && currentAnonymousId === reportAnonymousId
   );
+
+  // Close menu on click outside or escape key
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-report-menu]")) {
+        setMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("click", handleClickOutside);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("click", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
 
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
@@ -164,16 +185,6 @@ export function ReportHeader({
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <Link href={`/plan/${id}`}>
-          <Button size="sm" variant="secondary">
-            <Icon name="checklist" size={16} /> Improvement plan
-          </Button>
-        </Link>
-        <Link href={`/compass/${id}`}>
-          <Button size="sm" variant="secondary">
-            <Icon name="compass" size={16} /> Values compass
-          </Button>
-        </Link>
         <Button size="sm" variant="secondary" onClick={() => setShareModalOpen(true)}>
           <Icon name="square-share-line" size={16} /> Share
         </Button>
@@ -186,35 +197,98 @@ export function ReportHeader({
           </Button>
         </Link>
 
-        {isOwner && (
-          <div className="flex items-center gap-2 sm:ml-auto">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                if (isArchived) {
-                  handleToggleArchive();
-                } else {
-                  setArchiveModalOpen(true);
-                }
-              }}
-              disabled={isArchiving}
-              title={isArchived ? "Restore to active reflections" : "Archive this reflection"}
+        {/* 3-Dot Actions Menu (Improvement plan, Values compass, Share card, Archive, Delete) */}
+        <div className="relative" data-report-menu>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((v) => !v);
+            }}
+            aria-label="More reflection options"
+            aria-expanded={menuOpen}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)]/60 bg-[var(--color-surface)] text-[var(--color-text)] transition-colors hover:border-[var(--color-border)] hover:bg-[var(--color-surface-strong)] cursor-pointer"
+            title="More actions"
+          >
+            <Icon name="menu-dots-circle" size={18} />
+          </button>
+
+          {menuOpen && (
+            <div
+              className="absolute left-0 sm:left-auto sm:right-0 top-full z-40 mt-2 min-w-[220px] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-strong)] p-1.5 shadow-xl backdrop-blur-xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Icon name={isArchived ? "refresh" : "archive-down"} size={15} />
-              {isArchived ? "Restore" : "Archive"}
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => setDeleteModalOpen(true)}
-              title="Permanently delete this reflection"
-            >
-              <Icon name="trash-bin-trash" size={15} />
-              Delete
-            </Button>
-          </div>
-        )}
+              <Link
+                href={`/plan/${id}`}
+                onClick={() => setMenuOpen(false)}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+              >
+                <Icon name="checklist" size={16} className="text-[var(--color-text-muted)]" />
+                Improvement plan
+              </Link>
+              <Link
+                href={`/compass/${id}`}
+                onClick={() => setMenuOpen(false)}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+              >
+                <Icon name="compass" size={16} className="text-[var(--color-text-muted)]" />
+                Values compass
+              </Link>
+              <Link
+                href={`/share/${id}`}
+                onClick={() => setMenuOpen(false)}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+              >
+                <Icon name="gallery-wide" size={16} className="text-[var(--color-text-muted)]" />
+                Share card studio
+              </Link>
+
+              {isOwner && (
+                <>
+                  <div className="my-1 border-t border-[var(--color-border)]/50" />
+
+                  {isArchived ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        handleToggleArchive();
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+                    >
+                      <Icon name="refresh" size={16} className="text-amber-500" />
+                      Restore reflection
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setArchiveModalOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+                    >
+                      <Icon name="archive-down" size={16} className="text-[var(--color-text-muted)]" />
+                      Archive reflection
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setDeleteModalOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400 cursor-pointer"
+                  >
+                    <Icon name="trash-bin-trash" size={16} />
+                    Delete permanently
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Share Popover / Modal */}
@@ -226,7 +300,7 @@ export function ReportHeader({
 
           <div className="flex flex-col gap-2.5">
             <Link href={`/share/${id}`} onClick={() => setShareModalOpen(false)}>
-              <div className="group flex items-center justify-between rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 p-4 transition-all hover:bg-[var(--color-accent)]/15">
+              <div className="group flex items-center justify-between rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 p-4 transition-all hover:bg-[var(--color-accent)]/15 cursor-pointer">
                 <div className="flex items-center gap-3">
                   <div className="grid h-10 w-10 place-items-center rounded-full bg-[var(--color-accent)] text-white">
                     <Icon name="gallery-wide" size={20} />
@@ -246,7 +320,7 @@ export function ReportHeader({
 
             <button
               onClick={handleCopyLink}
-              className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-left transition-colors hover:bg-[var(--color-surface-strong)]"
+              className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-left transition-colors hover:bg-[var(--color-surface-strong)] cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <Icon name="copy" size={18} className="text-[var(--color-text-muted)]" />
@@ -257,7 +331,7 @@ export function ReportHeader({
 
             <button
               onClick={handleNativeShare}
-              className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-left transition-colors hover:bg-[var(--color-surface-strong)]"
+              className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-left transition-colors hover:bg-[var(--color-surface-strong)] cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <Icon name="square-share-line" size={18} className="text-[var(--color-text-muted)]" />
@@ -277,7 +351,7 @@ export function ReportHeader({
                 )}&url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors"
+                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors cursor-pointer"
               >
                 X (Twitter)
               </a>
@@ -287,7 +361,7 @@ export function ReportHeader({
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors"
+                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors cursor-pointer"
               >
                 WhatsApp
               </a>
@@ -297,7 +371,7 @@ export function ReportHeader({
                 )}&text=${encodeURIComponent("Check out my True Self reflection")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors"
+                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors cursor-pointer"
               >
                 Telegram
               </a>
@@ -307,7 +381,7 @@ export function ReportHeader({
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors"
+                className="rounded-full border border-[var(--color-border)] px-3.5 py-1.5 font-medium text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors cursor-pointer"
               >
                 LinkedIn
               </a>
