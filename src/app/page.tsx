@@ -28,40 +28,53 @@ const STAGES = [
   },
 ];
 
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 18 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+const heroContainer: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      duration: 0.35,
+      ease: [0.22, 1, 0.36, 1],
+      staggerChildren: 0.03,
+    },
+  },
+};
+
+const heroItem: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } },
 };
 
 export default function LandingPage() {
   return (
     <main>
       {/* ---------- Hero ---------- */}
-      <section className="mx-auto flex max-w-5xl flex-col items-center px-6 pb-16 pt-10 text-center sm:pt-16">
+      <motion.section
+        initial="hidden"
+        animate="show"
+        variants={heroContainer}
+        className="mx-auto flex max-w-5xl flex-col items-center px-6 pb-16 pt-10 text-center sm:pt-16"
+      >
         <motion.p
-          initial="hidden"
-          animate="show"
-          variants={fadeUp}
+          variants={heroItem}
           className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-accent)]"
         >
           A personal reflection experience
         </motion.p>
 
-        <HeroReflection />
+        <motion.div variants={heroItem} className="w-full">
+          <HeroReflection />
+        </motion.div>
 
         <motion.h1
-          initial="hidden"
-          animate="show"
-          variants={fadeUp}
+          variants={heroItem}
           className="font-editorial text-balance text-[2.1rem] leading-[1.1] sm:text-5xl md:text-[3.4rem]"
         >
           How well do you really know yourself?
         </motion.h1>
 
         <motion.p
-          initial="hidden"
-          animate="show"
-          variants={fadeUp}
+          variants={heroItem}
           className="mt-5 max-w-xl text-balance text-[1.05rem] leading-relaxed text-[var(--color-text-muted)]"
         >
           Six thoughtful questions. One honest look at your patterns, your strengths, and the
@@ -69,7 +82,7 @@ export default function LandingPage() {
           from here.
         </motion.p>
 
-        <motion.div initial="hidden" animate="show" variants={fadeUp} className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
+        <motion.div variants={heroItem} className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
           <Link href="/assess">
             <Button size="lg">
               Meet Yourself <Icon name="arrow-right" size={18} />
@@ -82,10 +95,10 @@ export default function LandingPage() {
           </Link>
         </motion.div>
 
-        <motion.p initial="hidden" animate="show" variants={fadeUp} className="mt-5 text-sm text-[var(--color-text-muted)]">
+        <motion.p variants={heroItem} className="mt-5 text-sm text-[var(--color-text-muted)]">
           No complicated personality tests. Just six questions and a little honesty.
         </motion.p>
-      </section>
+      </motion.section>
 
       {/* ---------- How it works ---------- */}
       <section id="how-it-works" className="mx-auto max-w-4xl scroll-mt-28 px-6 py-20">

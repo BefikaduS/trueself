@@ -98,7 +98,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       data-scroll-behavior="smooth"
       className={`${fontManrope.variable} ${fontInstrumentSerif.variable} ${fontNewsreader.variable} ${fontFraunces.variable} ${fontPlusJakarta.variable} ${fontDMSans.variable} ${fontCaveat.variable}`}
       suppressHydrationWarning
-      style={{ backgroundColor: "#0f0f12", color: "#eeeef0" }}
+      style={{ backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
     >
       <head>
         <script
