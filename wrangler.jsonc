@@ -20,8 +20,6 @@
     {
       "binding": "HYPERDRIVE",
       "id": "2a9b06acda73430884f85af00ae668c1",
-      "localConnectionString": "postgresql://trueself_cloudflare:npg_ZXtejNOm8Bq5@ep-sparkling-base-bacm9qqx.c-8.eu-central-1.aws.neon.tech/trueself?sslmode=require&channel_binding=require"
     }
   ]
 }
-
