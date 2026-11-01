@@ -19,9 +19,8 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "2a9b06acda73430884f85af00ae668c1"
-      // Optional: Can be used to connect to a local database for local development with `wrangler dev`
-      // "localConnectionString": "postgresql://postgres:postgres@127.0.0.1:5432/app_db"
+      "id": "2a9b06acda73430884f85af00ae668c1",
+      "localConnectionString": "postgresql://trueself_cloudflare:npg_ZXtejNOm8Bq5@ep-sparkling-base-bacm9qqx.c-8.eu-central-1.aws.neon.tech/trueself?sslmode=require&channel_binding=require"
     }
   ]
 }
