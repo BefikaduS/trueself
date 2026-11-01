@@ -71,6 +71,32 @@ const Q6_REGRET: Record<Letter, { trait: string; fragment: string }> = {
   G: { trait: "a real external constraint", fragment: "circumstances or resources that genuinely need to change before you can move forward" },
 };
 
+const TRAIT_TO_LETTER_D1: Record<string, string> = {
+  builder: "A", curious: "B", connector: "C", organizer: "D", distractor: "E", rest: "F"
+};
+const TRAIT_TO_LETTER_D2: Record<string, string> = {
+  perfectionist: "A", procrastinator: "B", overthinker: "C", sprinter: "D", pleaser: "E", solver: "F"
+};
+const TRAIT_TO_LETTER_D3: Record<string, string> = {
+  time: "A", preparation: "B", timing: "C", suppression: "D", tolerance: "E", capacity: "F"
+};
+const TRAIT_TO_LETTER_D4: Record<string, string> = {
+  withdrawal: "A", replaying: "B", defending: "C", immediate: "D", fixing: "E", direct: "F"
+};
+const TRAIT_TO_LETTER_D5: Record<string, string> = {
+  disconnection: "A", time_trade: "B", unseen: "C", depletion: "D", audience: "E", settled: "F"
+};
+const TRAIT_TO_LETTER_D6: Record<string, string> = {
+  comfort: "A", confidence: "B", scattered: "C", pleasing: "D", avoidance: "E", direction: "F", constraint: "G"
+};
+
+function resolveLetter(ans?: SubmittedAnswer, map?: Record<string, string>, fallback = "A"): string {
+  if (ans?.trait && map && map[ans.trait]) {
+    return map[ans.trait];
+  }
+  return ans?.optionId || fallback;
+}
+
 function answerFor(answers: SubmittedAnswer[], index: number) {
   return answers[index];
 }
@@ -83,12 +109,19 @@ export function generateDemoAnalysis(name: string, answers: SubmittedAnswer[]): 
   const a5 = answerFor(answers, 4);
   const a6 = answerFor(answers, 5);
 
-  const m1 = pick(Q1_MOTIVE, a1?.optionId, Q1_MOTIVE.F);
-  const m2 = pick(Q2_RESPONSE, a2?.optionId, Q2_RESPONSE.F);
-  const m3 = pick(Q3_EXCUSE, a3?.optionId, Q3_EXCUSE.F);
-  const m4 = pick(Q4_REFLEX, a4?.optionId, Q4_REFLEX.F);
-  const m5 = pick(Q5_SUCCESS, a5?.optionId, Q5_SUCCESS.F);
-  const m6 = pick(Q6_REGRET, a6?.optionId, Q6_REGRET.F);
+  const k1 = resolveLetter(a1, TRAIT_TO_LETTER_D1, "F");
+  const k2 = resolveLetter(a2, TRAIT_TO_LETTER_D2, "F");
+  const k3 = resolveLetter(a3, TRAIT_TO_LETTER_D3, "F");
+  const k4 = resolveLetter(a4, TRAIT_TO_LETTER_D4, "F");
+  const k5 = resolveLetter(a5, TRAIT_TO_LETTER_D5, "F");
+  const k6 = resolveLetter(a6, TRAIT_TO_LETTER_D6, "F");
+
+  const m1 = pick(Q1_MOTIVE, k1, Q1_MOTIVE.F);
+  const m2 = pick(Q2_RESPONSE, k2, Q2_RESPONSE.F);
+  const m3 = pick(Q3_EXCUSE, k3, Q3_EXCUSE.F);
+  const m4 = pick(Q4_REFLEX, k4, Q4_REFLEX.F);
+  const m5 = pick(Q5_SUCCESS, k5, Q5_SUCCESS.F);
+  const m6 = pick(Q6_REGRET, k6, Q6_REGRET.F);
 
   const firstName = name?.trim() || "You";
 

@@ -2,8 +2,10 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { toPng, toBlob } from "html-to-image";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/common/Button";
+import { Modal } from "@/components/common/Modal";
 import { LoadingState, ErrorState } from "@/components/common/States";
 import { useToast } from "@/components/common/Toast";
 import type { AnalysisResult } from "@/lib/types";
@@ -29,9 +31,9 @@ const STYLES: { id: CardStyle; name: string; desc: string; previewBg: string }[]
 ];
 
 const RATIOS: { id: CardRatio; name: string; aspect: string; width: number; height: number }[] = [
-  { id: "square", name: "Square 1:1", aspect: "aspect-square max-w-[460px]", width: 1080, height: 1080 },
-  { id: "story", name: "Story 9:16", aspect: "aspect-[9/16] max-w-[360px]", width: 1080, height: 1920 },
-  { id: "landscape", name: "Landscape 16:9", aspect: "aspect-[16/9] max-w-[540px]", width: 1200, height: 675 },
+  { id: "story", name: "Story 9:16", aspect: "aspect-[9/16] max-w-[340px]", width: 1080, height: 1920 },
+  { id: "square", name: "Square 1:1", aspect: "aspect-square max-w-[420px]", width: 1080, height: 1080 },
+  { id: "landscape", name: "Landscape 16:9", aspect: "aspect-[16/9] max-w-[520px]", width: 1200, height: 675 },
 ];
 
 const FONTS: { id: CardFont; name: string; styleName: string; fontClass: string; canvasFamily: string }[] = [
@@ -46,7 +48,7 @@ const FONTS: { id: CardFont; name: string; styleName: string; fontClass: string;
     id: "editorial",
     name: "Reflective Serif",
     styleName: "Instrument Serif",
-    fontClass: "font-editorial text-lg sm:text-xl leading-relaxed",
+    fontClass: "font-editorial text-xl sm:text-2xl leading-relaxed",
     canvasFamily: '"Instrument Serif", Georgia, serif',
   },
   {
@@ -72,19 +74,57 @@ const FONTS: { id: CardFont; name: string; styleName: string; fontClass: string;
   },
 ];
 
+/**
+ * Summarizes long passages into short, punchy reflections ideal for story cards
+ */
+function summarizeReflection(text: string, maxLen = 145): string {
+  if (!text) return "";
+  const cleaned = text.trim();
+  if (cleaned.length <= maxLen) return cleaned;
+
+  // Extract first clean sentence
+  const sentences = cleaned.match(/[^.!?]+[.!?]+(?:\s|$)/g);
+  if (sentences && sentences.length > 0) {
+    const first = sentences[0].trim();
+    if (first.length >= 35 && first.length <= maxLen) {
+      return first;
+    }
+    if (first.length > maxLen) {
+      const cut = first.slice(0, maxLen).lastIndexOf(" ");
+      return (cut > 30 ? first.slice(0, cut) : first.slice(0, maxLen)).trim() + "...";
+    }
+    if (sentences.length > 1) {
+      const combined = `${first} ${sentences[1].trim()}`;
+      if (combined.length <= maxLen) {
+        return combined;
+      }
+    }
+    return first;
+  }
+
+  const cut = cleaned.slice(0, maxLen).lastIndexOf(" ");
+  return (cut > 30 ? cleaned.slice(0, cut) : cleaned.slice(0, maxLen)).trim() + "...";
+}
+
 export default function ShareCardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const cardRef = useRef<HTMLDivElement>(null);
+
   const [selectedStyle, setSelectedStyle] = useState<CardStyle>("noir");
-  const [selectedRatio, setSelectedRatio] = useState<CardRatio>("square");
+  const [selectedRatio, setSelectedRatio] = useState<CardRatio>("story");
   const [selectedFont, setSelectedFont] = useState<CardFont>("handwriting");
   const [selectedSection, setSelectedSection] = useState<ContentSection>("portrait");
+  const [isSummarized, setIsSummarized] = useState(true);
   const [showName, setShowName] = useState(true);
   const [showBranding, setShowBranding] = useState(true);
+
   const [downloading, setDownloading] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [storyModalOpen, setStoryModalOpen] = useState(false);
 
   const { show } = useToast();
 
@@ -136,26 +176,27 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
 
   // Resolve content based on active section
   let titleText = "The Reflection";
-  let quoteText = analysis.portrait.summary;
+  let rawQuoteText = analysis.portrait.summary;
   let tagText = "Core Portrait";
 
   if (selectedSection === "honestTruth") {
     titleText = analysis.honestTruth.title || "The Honest Truth";
-    quoteText = analysis.honestTruth.observation;
+    rawQuoteText = analysis.honestTruth.observation;
     tagText = "Observation";
   } else if (selectedSection === "strength") {
     titleText = analysis.strength.title || "Core Strength";
-    quoteText = analysis.strength.description;
+    rawQuoteText = analysis.strength.description;
     tagText = "Natural Instinct";
   } else if (selectedSection === "pattern") {
     titleText = "Behavioral Cycle";
-    quoteText = analysis.behaviorPattern.explanation || analysis.behaviorPattern.stages.join(" → ");
+    rawQuoteText = analysis.behaviorPattern.explanation || analysis.behaviorPattern.stages.join(" → ");
     tagText = "Pattern Loop";
   }
 
   const activeFontMeta = FONTS.find((f) => f.id === selectedFont) || FONTS[0];
+  const quoteText = isSummarized ? summarizeReflection(rawQuoteText) : rawQuoteText;
 
-  // Pure Native Canvas Drawing — 100% immune to 'Tainted Canvas' security restrictions
+  // Pure Native Canvas Drawing Fallback
   const renderCardToCanvas = (width: number, height: number): HTMLCanvasElement => {
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -170,7 +211,6 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       ctx.fillStyle = "#0b0b0e";
       ctx.fillRect(0, 0, width, height);
 
-      // Subtle warm ambient radial glow
       const radialGlow = ctx.createRadialGradient(
         width / 2,
         0,
@@ -184,7 +224,6 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       ctx.fillStyle = radialGlow;
       ctx.fillRect(0, 0, width, height);
 
-      // Border frame
       ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
       ctx.lineWidth = 2 * scaleFactor;
       if (ctx.roundRect) {
@@ -202,7 +241,6 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       ctx.fillStyle = "#fbf7f0";
       ctx.fillRect(0, 0, width, height);
 
-      // Literary embossed double-frame
       ctx.strokeStyle = "rgba(217, 189, 159, 0.65)";
       ctx.lineWidth = 2 * scaleFactor;
       if (ctx.roundRect) {
@@ -215,24 +253,11 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
           24 * scaleFactor
         );
         ctx.stroke();
-
-        ctx.strokeStyle = "rgba(217, 189, 159, 0.25)";
-        ctx.lineWidth = 1 * scaleFactor;
-        ctx.beginPath();
-        ctx.roundRect(
-          24 * scaleFactor,
-          24 * scaleFactor,
-          width - 48 * scaleFactor,
-          height - 48 * scaleFactor,
-          18 * scaleFactor
-        );
-        ctx.stroke();
       }
     } else if (selectedStyle === "liquid") {
       ctx.fillStyle = "#10141f";
       ctx.fillRect(0, 0, width, height);
 
-      // Cyan-teal volumetric glow
       const cyanGlow = ctx.createRadialGradient(
         width * 0.8,
         height * 0.2,
@@ -247,7 +272,6 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       ctx.fillStyle = cyanGlow;
       ctx.fillRect(0, 0, width, height);
 
-      // Iridescent specular rim border
       ctx.strokeStyle = "rgba(45, 212, 191, 0.4)";
       ctx.lineWidth = 2.5 * scaleFactor;
       if (ctx.roundRect) {
@@ -283,7 +307,6 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
         ctx.stroke();
       }
     } else {
-      // Swiss Minimal
       ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, width, height);
 
@@ -307,10 +330,8 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
 
     // 2. Top Header (Branding & Category Tag)
     if (showBranding) {
-      // Draw Trueself Monogram Mark
       ctx.save();
-      const markColor =
-        selectedStyle === "parchment" ? "#c1512d" : "#ed6c30";
+      const markColor = selectedStyle === "parchment" ? "#c1512d" : "#ed6c30";
       ctx.strokeStyle = markColor;
       ctx.lineWidth = 2.5 * scaleFactor;
       const circleR = 10 * scaleFactor;
@@ -324,7 +345,6 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       ctx.arc(markX, markY, 3.5 * scaleFactor, 0, Math.PI * 2);
       ctx.fill();
 
-      // Wordmark
       ctx.fillStyle = selectedStyle === "parchment" ? "#191715" : "#ffffff";
       ctx.font = `600 ${18 * scaleFactor}px "Instrument Serif", Georgia, serif`;
       ctx.fillText("Trueself", markX + circleR + 10 * scaleFactor, topY + 2 * scaleFactor);
@@ -373,37 +393,26 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
     ctx.lineTo(width - paddingX, topY + 22 * scaleFactor);
     ctx.stroke();
 
-    // 3. Middle Content: Subject Title & Quote Text
+    // 3. Middle Content
     const contentStartY = topY + 65 * scaleFactor;
 
-    // Subheading (Author / Reflection Title)
-    ctx.fillStyle =
-      selectedStyle === "parchment" ? "#77716b" : "rgba(255, 255, 255, 0.65)";
+    ctx.fillStyle = selectedStyle === "parchment" ? "#77716b" : "rgba(255, 255, 255, 0.65)";
     ctx.font = `bold ${11 * scaleFactor}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
     const subheader = showName ? `${name}'s reflection`.toUpperCase() : titleText.toUpperCase();
     ctx.fillText(subheader, paddingX, contentStartY);
 
-    // Dynamic Font Calculation & Text Wrapping for the Quote
     let fontSize = 23 * scaleFactor;
     let lineHeight = 36 * scaleFactor;
 
     if (selectedFont === "handwriting") {
-      fontSize = 32 * scaleFactor;
-      lineHeight = 44 * scaleFactor;
+      fontSize = 30 * scaleFactor;
+      lineHeight = 42 * scaleFactor;
     } else if (selectedFont === "sans") {
       fontSize = 20 * scaleFactor;
       lineHeight = 30 * scaleFactor;
     } else if (selectedFont === "editorial") {
       fontSize = 25 * scaleFactor;
       lineHeight = 38 * scaleFactor;
-    }
-
-    if (selectedRatio === "story") {
-      fontSize = fontSize * 1.08;
-      lineHeight = lineHeight * 1.1;
-    } else if (selectedRatio === "landscape") {
-      fontSize = fontSize * 0.92;
-      lineHeight = lineHeight * 0.94;
     }
 
     const fontStyle = selectedFont === "handwriting" ? "500" : selectedFont === "sans" ? "500" : "italic";
@@ -426,14 +435,12 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
     }
     if (currentLine) lines.push(currentLine);
 
-    // Limit lines according to aspect ratio
-    const maxLines = selectedRatio === "story" ? 16 : selectedRatio === "landscape" ? 6 : 9;
+    const maxLines = selectedRatio === "story" ? 14 : selectedRatio === "landscape" ? 5 : 8;
     const renderLines = lines.slice(0, maxLines);
     if (lines.length > maxLines && renderLines.length > 0) {
       renderLines[renderLines.length - 1] += "...";
     }
 
-    // Vertically center quote between contentStartY and bottom footer
     const bottomY = height - 48 * scaleFactor;
     const availableHeight = bottomY - contentStartY - 30 * scaleFactor;
     const quoteTotalHeight = renderLines.length * lineHeight;
@@ -444,7 +451,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       ctx.fillText(lineStr, paddingX, quoteY + l * lineHeight);
     }
 
-    // 4. Bottom Footer (Attribution / Watermark)
+    // 4. Bottom Footer
     if (showBranding) {
       ctx.strokeStyle =
         selectedStyle === "parchment" ? "rgba(25, 23, 21, 0.12)" : "rgba(255, 255, 255, 0.12)";
@@ -454,8 +461,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       ctx.lineTo(width - paddingX, bottomY - 18 * scaleFactor);
       ctx.stroke();
 
-      ctx.fillStyle =
-        selectedStyle === "parchment" ? "#77716b" : "rgba(255, 255, 255, 0.55)";
+      ctx.fillStyle = selectedStyle === "parchment" ? "#77716b" : "rgba(255, 255, 255, 0.55)";
       ctx.font = `400 ${11 * scaleFactor}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
       ctx.fillText("know who you are behind decisions", paddingX, bottomY);
 
@@ -468,55 +474,131 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
     return canvas;
   };
 
-  const handleDownload = () => {
+  /**
+   * High-Resolution PNG Download that captures the exact customized card
+   */
+  const handleDownload = async () => {
     setDownloading(true);
     try {
-      const ratioConfig = RATIOS.find((r) => r.id === selectedRatio) || RATIOS[0];
-      const canvas = renderCardToCanvas(ratioConfig.width, ratioConfig.height);
+      if (!cardRef.current) throw new Error("Card element not found");
+      if (typeof document !== "undefined" && "fonts" in document) {
+        await document.fonts.ready;
+      }
 
-      // Export cleanly without any cross-origin or foreignObject taint
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.download = `trueself-${name.toLowerCase().replace(/\s+/g, "-")}-reflection.png`;
-          a.href = url;
-          a.click();
-          URL.revokeObjectURL(url);
-          show("High-resolution card downloaded successfully!", "success");
-        } else {
-          // Fallback to dataURL
-          const pngUrl = canvas.toDataURL("image/png");
-          const a = document.createElement("a");
-          a.download = `trueself-${name.toLowerCase().replace(/\s+/g, "-")}-reflection.png`;
-          a.href = pngUrl;
-          a.click();
-          show("Card downloaded successfully!", "success");
-        }
-        setDownloading(false);
-      }, "image/png");
+      // 1. Render directly from DOM using html-to-image
+      const dataUrl = await toPng(cardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2.5,
+        quality: 0.98,
+      });
+
+      const a = document.createElement("a");
+      a.download = `trueself-${name.toLowerCase().replace(/\s+/g, "-")}-reflection.png`;
+      a.href = dataUrl;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      show("Customized card downloaded successfully!", "success");
     } catch (err) {
-      console.error("Export error:", err);
-      show("Could not generate card. Please try another format.", "error");
+      console.warn("DOM image export fallback to canvas:", err);
+      try {
+        const ratioConfig = RATIOS.find((r) => r.id === selectedRatio) || RATIOS[0];
+        const canvas = renderCardToCanvas(ratioConfig.width, ratioConfig.height);
+        const dataUrl = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
+        a.download = `trueself-${name.toLowerCase().replace(/\s+/g, "-")}-reflection.png`;
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        show("Card downloaded successfully!", "success");
+      } catch (canvasErr) {
+        console.error("Canvas export error:", canvasErr);
+        show("Could not generate card image. Please try another browser.", "error");
+      }
+    } finally {
       setDownloading(false);
     }
   };
 
-  const copyShareLink = () => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    navigator.clipboard?.writeText(`${origin}/report/${id}`).then(() => {
-      show("Report link copied to clipboard!", "success");
-    });
+  /**
+   * Share directly to Instagram Story via Web Share API or download curated story image
+   */
+  const handleShareToStory = async () => {
+    setSharing(true);
+    try {
+      if (!cardRef.current) throw new Error("Card element not found");
+      if (typeof document !== "undefined" && "fonts" in document) {
+        await document.fonts.ready;
+      }
+
+      let blob: Blob | null = null;
+      try {
+        blob = await toBlob(cardRef.current, {
+          cacheBust: true,
+          pixelRatio: 2.5,
+          quality: 0.98,
+        });
+      } catch {
+        const ratioConfig = RATIOS.find((r) => r.id === selectedRatio) || RATIOS[0];
+        const canvas = renderCardToCanvas(ratioConfig.width, ratioConfig.height);
+        blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      }
+
+      if (!blob) throw new Error("Could not create image blob");
+
+      const file = new File([blob], `trueself-${name.toLowerCase().replace(/\s+/g, "-")}-story.png`, {
+        type: "image/png",
+      });
+
+      // Mobile Web Share API with Files support (triggers Instagram Stories on iOS / Android)
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          files: [file],
+          title: `${name}'s True Self Reflection`,
+          text: `“${quoteText}” — trueself.me`,
+        });
+        show("Opened story share!", "success");
+      } else {
+        // Desktop / unsupported browsers: download story PNG and open instruction dialog
+        const dataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob as Blob);
+        });
+
+        const a = document.createElement("a");
+        a.download = `trueself-${name.toLowerCase().replace(/\s+/g, "-")}-story.png`;
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        setStoryModalOpen(true);
+      }
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        console.error("Story share error:", err);
+        show("Story card downloaded. You can now post it to Instagram Stories.", "default");
+        setStoryModalOpen(true);
+      }
+    } finally {
+      setSharing(false);
+    }
   };
 
   return (
-    <main className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
+    <main className="mx-auto max-w-5xl px-4 sm:px-6 py-10">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-border)]/60 pb-6">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-            <Link href={`/report/${id}`} className="hover:underline">
-              &larr; Back to Report
+            <Link href={`/report/${id}`} className="hover:underline flex items-center gap-1">
+              <Icon name="arrow-left" size={13} /> Back to report
             </Link>
             <span>·</span>
             <span>Card Studio</span>
@@ -525,17 +607,29 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
             Shareable Card Studio
           </h1>
           <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-            Design an aesthetic visual card with custom handwriting fonts, clean aspect ratios, and optional branding.
+            Design an aesthetic visual card with custom handwriting fonts, curated aspect ratios, and instant story sharing.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={copyShareLink}>
-            <Icon name="copy" size={15} /> Copy Report Link
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleShareToStory}
+            disabled={sharing}
+            className="cursor-pointer"
+          >
+            <Icon name="camera" size={16} />
+            {sharing ? "Preparing Story..." : "Share to Story"}
           </Button>
-          <Button size="sm" onClick={handleDownload} disabled={downloading}>
-            <Icon name="download-square" size={15} />
-            {downloading ? "Rendering PNG..." : "Download Card (PNG)"}
+          <Button
+            size="sm"
+            onClick={handleDownload}
+            disabled={downloading}
+            className="cursor-pointer"
+          >
+            <Icon name="download-square" size={16} />
+            {downloading ? "Rendering PNG..." : "Download (PNG)"}
           </Button>
         </div>
       </div>
@@ -543,6 +637,67 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Controls Column */}
         <div className="lg:col-span-5 flex flex-col gap-5 order-2 lg:order-1">
+          {/* Card Length Toggle (Summarized vs Full) */}
+          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)]/70 bg-[var(--color-surface)]/40 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text)]">
+                Card Length & Clarity
+              </span>
+              <span className="text-[0.7rem] font-medium text-[var(--color-accent)]">
+                {isSummarized ? "Summarized (Short)" : "Full"}
+              </span>
+            </div>
+            <p className="mt-1 text-[0.72rem] text-[var(--color-text-muted)]">
+              Short summaries keep your card compact, responsive, and readable on mobile story feeds.
+            </p>
+            <div className="mt-2.5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setIsSummarized(true)}
+                className={`flex-1 rounded-[var(--radius-md)] border py-2 px-3 text-center text-xs font-medium transition-all cursor-pointer ${
+                  isSummarized
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white shadow-xs font-semibold"
+                    : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                }`}
+              >
+                Summarized (Short)
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSummarized(false)}
+                className={`flex-1 rounded-[var(--radius-md)] border py-2 px-3 text-center text-xs font-medium transition-all cursor-pointer ${
+                  !isSummarized
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white shadow-xs font-semibold"
+                    : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                }`}
+              >
+                Full passage
+              </button>
+            </div>
+          </div>
+
+          {/* Format & Aspect Ratio */}
+          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)]/70 bg-[var(--color-surface)]/40 p-4">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text)]">
+              Format & Aspect Ratio
+            </span>
+            <div className="mt-2.5 flex gap-2">
+              {RATIOS.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => setSelectedRatio(r.id)}
+                  className={`flex-1 rounded-[var(--radius-md)] border py-2 px-3 text-center text-xs font-medium transition-all cursor-pointer ${
+                    selectedRatio === r.id
+                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white shadow-xs font-semibold"
+                      : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                  }`}
+                >
+                  {r.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Font Selector */}
           <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)]/70 bg-[var(--color-surface)]/40 p-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text)]">
@@ -553,7 +708,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                 <button
                   key={f.id}
                   onClick={() => setSelectedFont(f.id)}
-                  className={`flex items-center justify-between rounded-[var(--radius-md)] border p-2.5 text-left transition-all ${
+                  className={`flex items-center justify-between rounded-[var(--radius-md)] border p-2.5 text-left transition-all cursor-pointer ${
                     selectedFont === f.id
                       ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 ring-1 ring-[var(--color-accent)]"
                       : "border-[var(--color-border)] bg-[var(--color-surface)]/50 hover:bg-[var(--color-surface)]"
@@ -593,7 +748,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                 <button
                   key={st.id}
                   onClick={() => setSelectedStyle(st.id)}
-                  className={`flex items-center gap-2.5 rounded-[var(--radius-md)] border p-2.5 text-left transition-all ${
+                  className={`flex items-center gap-2.5 rounded-[var(--radius-md)] border p-2.5 text-left transition-all cursor-pointer ${
                     selectedStyle === st.id
                       ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 ring-1 ring-[var(--color-accent)]"
                       : "border-[var(--color-border)] hover:bg-[var(--color-surface)]"
@@ -601,28 +756,6 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                 >
                   <span className={`h-6 w-6 rounded-full border border-white/20 shrink-0 ${st.previewBg}`} />
                   <p className="text-xs font-semibold text-[var(--color-text)]">{st.name}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Aspect Ratio Selector */}
-          <div className="rounded-[var(--radius-lg)] border border-[var(--color-border)]/70 bg-[var(--color-surface)]/40 p-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text)]">
-              Format & Aspect Ratio
-            </span>
-            <div className="mt-2.5 flex gap-2">
-              {RATIOS.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setSelectedRatio(r.id)}
-                  className={`flex-1 rounded-[var(--radius-md)] border py-2 px-3 text-center text-xs font-medium transition-all ${
-                    selectedRatio === r.id
-                      ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white shadow-xs"
-                      : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-                  }`}
-                >
-                  {r.name}
                 </button>
               ))}
             </div>
@@ -643,7 +776,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                 <button
                   key={c.id}
                   onClick={() => setSelectedSection(c.id as ContentSection)}
-                  className={`flex items-center justify-between rounded-[var(--radius-md)] border p-2 text-left transition-all ${
+                  className={`flex items-center justify-between rounded-[var(--radius-md)] border p-2 text-left transition-all cursor-pointer ${
                     selectedSection === c.id
                       ? "border-[var(--color-accent)] bg-[var(--color-accent)]/10 font-semibold text-[var(--color-text)]"
                       : "border-[var(--color-border)] bg-[var(--color-surface)]/60 text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
@@ -666,8 +799,9 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                 <span className="text-[var(--color-text-muted)] block text-[0.72rem]">Attributed as &ldquo;{name}&rsquo;s reflection&rdquo;</span>
               </div>
               <button
+                type="button"
                 onClick={() => setShowName(!showName)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
                   showName ? "bg-[var(--color-accent)]" : "bg-[var(--color-border)]"
                 }`}
               >
@@ -685,8 +819,9 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                 <span className="text-[var(--color-text-muted)] block text-[0.72rem]">Toggle logo and trueself.me watermark</span>
               </div>
               <button
+                type="button"
                 onClick={() => setShowBranding(!showBranding)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
                   showBranding ? "bg-[var(--color-accent)]" : "bg-[var(--color-border)]"
                 }`}
               >
@@ -711,7 +846,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
                 <span className="font-semibold uppercase tracking-wider text-[var(--color-text)] text-[0.72rem]">
-                  Live Preview
+                  Live Responsive Preview
                 </span>
               </div>
               <div className="flex items-center gap-2 text-[0.72rem] text-[var(--color-text-muted)]">
@@ -725,10 +860,11 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
             </div>
 
             {/* The Live Rendered Card Container */}
-            <div className="w-full flex justify-center py-4 max-h-[calc(100vh-17rem)] overflow-y-auto no-scrollbar">
+            <div className="w-full flex justify-center py-5 max-h-[calc(100vh-17rem)] overflow-y-auto no-scrollbar">
               {/* The Live Rendered Card */}
               <div
-                className={`w-full overflow-hidden transition-all duration-300 relative select-none shadow-2xl ${
+                ref={cardRef}
+                className={`w-full overflow-hidden transition-all duration-300 relative select-none shadow-2xl flex flex-col justify-between ${
                   RATIOS.find((r) => r.id === selectedRatio)?.aspect
                 } ${
                   selectedStyle === "noir"
@@ -742,8 +878,9 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                     : "bg-black text-white border-2 border-white/20"
                 }`}
                 style={{
-                  borderRadius: "26px",
-                  padding: selectedRatio === "story" ? "32px 24px" : "30px",
+                  borderRadius: "24px",
+                  padding: selectedRatio === "story" ? "32px 24px" : "28px 24px",
+                  minHeight: selectedRatio === "story" ? "420px" : "auto",
                 }}
               >
                 {/* Liquid caustic glow */}
@@ -765,10 +902,10 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                 )}
 
                 {/* Inner card layout */}
-                <div className="relative z-10 flex h-full flex-col justify-between">
+                <div className="relative z-10 flex h-full flex-col justify-between gap-5">
                   {/* Top header row */}
                   <div
-                    className="flex items-center justify-between border-b pb-3.5"
+                    className="flex items-center justify-between border-b pb-3"
                     style={{
                       borderColor:
                         selectedStyle === "parchment" ? "rgba(25,23,21,0.12)" : "rgba(255,255,255,0.12)",
@@ -776,7 +913,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                   >
                     {showBranding ? (
                       <div className="flex items-center gap-2">
-                        <LogoMark size={22} />
+                        <LogoMark size={20} />
                         <span className="font-editorial text-sm font-semibold tracking-wide">
                           Trueself
                         </span>
@@ -809,7 +946,7 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                   </div>
 
                   {/* Main Quote Content */}
-                  <div className="my-auto py-4">
+                  <div className="my-auto py-2">
                     <p
                       className="text-[0.68rem] uppercase tracking-[0.2em] font-semibold opacity-70"
                       style={{ color: selectedStyle === "parchment" ? "#77716b" : "#aaa" }}
@@ -818,9 +955,9 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
                     </p>
 
                     <blockquote
-                      className={`mt-2 ${activeFontMeta.fontClass} ${
+                      className={`mt-2.5 ${activeFontMeta.fontClass} ${
                         selectedRatio === "story"
-                          ? "line-clamp-10"
+                          ? "line-clamp-8"
                           : selectedRatio === "landscape"
                           ? "line-clamp-4"
                           : "line-clamp-6"
@@ -851,14 +988,26 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
             {/* Quick Sticky Action Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--color-border)]/50">
               <span className="text-[0.72rem] text-[var(--color-text-muted)] truncate max-w-[200px]">
-                {selectedStyle.toUpperCase()} · {showBranding ? "Branded" : "Unbranded"}
+                {selectedStyle.toUpperCase()} · {isSummarized ? "Short Summary" : "Full"}
               </span>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={copyShareLink} className="text-xs">
-                  <Icon name="copy" size={13} /> Copy Link
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleShareToStory}
+                  disabled={sharing}
+                  className="text-xs cursor-pointer"
+                >
+                  <Icon name="camera" size={14} />
+                  {sharing ? "Preparing..." : "Share to Story"}
                 </Button>
-                <Button size="sm" onClick={handleDownload} disabled={downloading} className="text-xs">
-                  <Icon name="download-square" size={13} />
+                <Button
+                  size="sm"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className="text-xs cursor-pointer"
+                >
+                  <Icon name="download-square" size={14} />
                   {downloading ? "Rendering..." : "Download (PNG)"}
                 </Button>
               </div>
@@ -866,6 +1015,43 @@ export default function ShareCardPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
       </div>
+
+      {/* Story Share Desktop Fallback Modal */}
+      <Modal open={storyModalOpen} onClose={() => setStoryModalOpen(false)} title="Share to Instagram Story">
+        <div className="flex flex-col gap-4 pt-2 text-sm text-[var(--color-text-muted)]">
+          <div className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 p-4">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--color-accent)] text-white">
+              <Icon name="camera" size={20} />
+            </div>
+            <div>
+              <p className="font-semibold text-[var(--color-text)]">Curated Story Card Ready!</p>
+              <p className="text-xs text-[var(--color-text-muted)]">
+                Your personalized reflection card has been saved to your downloads.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-3.5 text-xs text-[var(--color-text)]">
+            <p className="font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">How to post to Instagram Story:</p>
+            <ol className="list-decimal list-inside space-y-1.5 text-[var(--color-text-muted)]">
+              <li>Open <strong className="text-[var(--color-text)]">Instagram</strong> on your phone or web browser.</li>
+              <li>Tap <strong className="text-[var(--color-text)]">Your Story (+)</strong> to create a new story.</li>
+              <li>Select your downloaded <strong className="text-[var(--color-text)]">Trueself</strong> card from your photos or files.</li>
+            </ol>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setStoryModalOpen(false)} className="cursor-pointer">
+              Done
+            </Button>
+            <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">
+              <Button size="sm" className="cursor-pointer">
+                <Icon name="plain" size={14} /> Open Instagram
+              </Button>
+            </a>
+          </div>
+        </div>
+      </Modal>
     </main>
   );
 }

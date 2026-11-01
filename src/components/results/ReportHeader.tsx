@@ -184,20 +184,16 @@ export function ReportHeader({
         </h1>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2.5">
-        <Button size="sm" variant="secondary" onClick={() => setShareModalOpen(true)}>
-          <Icon name="square-share-line" size={16} /> Share
-        </Button>
-        <Button size="sm" variant="secondary" onClick={handleScrollToAddFriend}>
-          <Icon name="user-plus" size={16} /> Add Friend
-        </Button>
-        <Link href="/history">
-          <Button size="sm" variant="ghost">
-            <Icon name="clock-circle" size={16} /> My reports
-          </Button>
+      <div className="flex items-center justify-between gap-4">
+        <Link
+          href="/history"
+          className="group inline-flex items-center gap-2 rounded-full border border-[var(--color-border)]/70 bg-[var(--color-surface)]/60 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-text-muted)] transition-all hover:border-[var(--color-border)] hover:bg-[var(--color-surface-strong)] hover:text-[var(--color-text)] cursor-pointer"
+        >
+          <Icon name="arrow-left" size={15} className="transition-transform group-hover:-translate-x-0.5 text-[var(--color-accent)]" />
+          <span>Back to my reports</span>
         </Link>
 
-        {/* 3-Dot Actions Menu (Improvement plan, Values compass, Share card, Archive, Delete) */}
+        {/* 3-Dot Actions Menu */}
         <div className="relative" data-report-menu>
           <button
             type="button"
@@ -207,17 +203,64 @@ export function ReportHeader({
             }}
             aria-label="More reflection options"
             aria-expanded={menuOpen}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)]/60 bg-[var(--color-surface)] text-[var(--color-text)] transition-colors hover:border-[var(--color-border)] hover:bg-[var(--color-surface-strong)] cursor-pointer"
-            title="More actions"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-border)]/70 bg-[var(--color-surface)] text-[var(--color-text)] transition-colors hover:border-[var(--color-border)] hover:bg-[var(--color-surface-strong)] cursor-pointer"
+            title="Reflection actions"
           >
             <Icon name="menu-dots-circle" size={18} />
           </button>
 
           {menuOpen && (
             <div
-              className="absolute left-0 sm:left-auto sm:right-0 top-full z-40 mt-2 min-w-[220px] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-strong)] p-1.5 shadow-xl backdrop-blur-xl"
+              className="absolute right-0 top-full z-40 mt-2 min-w-[230px] overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface-strong)] p-1.5 shadow-xl backdrop-blur-xl"
               onClick={(e) => e.stopPropagation()}
             >
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setShareModalOpen(true);
+                }}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+              >
+                <Icon name="square-share-line" size={16} className="text-[var(--color-text-muted)]" />
+                Share reflection
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleCopyLink();
+                }}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+              >
+                <Icon name="copy" size={16} className="text-[var(--color-text-muted)]" />
+                Copy report link
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  handleScrollToAddFriend();
+                }}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+              >
+                <Icon name="user-plus" size={16} className="text-[var(--color-text-muted)]" />
+                Add friend perspective
+              </button>
+
+              <div className="my-1 border-t border-[var(--color-border)]/50" />
+
+              <Link
+                href={`/share/${id}`}
+                onClick={() => setMenuOpen(false)}
+                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
+              >
+                <Icon name="gallery-wide" size={16} className="text-[var(--color-text-muted)]" />
+                Share card studio
+              </Link>
+
               <Link
                 href={`/plan/${id}`}
                 onClick={() => setMenuOpen(false)}
@@ -226,6 +269,7 @@ export function ReportHeader({
                 <Icon name="checklist" size={16} className="text-[var(--color-text-muted)]" />
                 Improvement plan
               </Link>
+
               <Link
                 href={`/compass/${id}`}
                 onClick={() => setMenuOpen(false)}
@@ -233,14 +277,6 @@ export function ReportHeader({
               >
                 <Icon name="compass" size={16} className="text-[var(--color-text-muted)]" />
                 Values compass
-              </Link>
-              <Link
-                href={`/share/${id}`}
-                onClick={() => setMenuOpen(false)}
-                className="flex w-full items-center gap-2.5 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface)] cursor-pointer"
-              >
-                <Icon name="gallery-wide" size={16} className="text-[var(--color-text-muted)]" />
-                Share card studio
               </Link>
 
               {isOwner && (

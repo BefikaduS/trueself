@@ -17,7 +17,19 @@ const emptySubscribe = () => () => {};
 
 export default function AssessPage() {
   const router = useRouter();
-  const { name, step, answers, setName, goTo, setAnswer, setContext, isComplete, resetAssessment } = useAssessmentStore();
+  const {
+    name,
+    step,
+    answers,
+    questions,
+    setName,
+    goTo,
+    setAnswer,
+    setContext,
+    isComplete,
+    resetAssessment,
+    shuffleQuestions,
+  } = useAssessmentStore();
   const [submitStatus, setSubmitStatus] = useState<"idle" | "pending" | "slow" | "error">("idle");
   const slowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -29,24 +41,26 @@ export default function AssessPage() {
   );
 
   useEffect(() => {
+    // Whenever the user reloads or lands on the assessment page,
+    // shuffle a fresh set of questions and randomized option orders from the 30-question bank across the 6 views!
     const store = useAssessmentStore.getState();
-    // Always ask for a name first before starting the questions
-    if (!store.name?.trim() || store.isComplete()) {
-      if (store.isComplete()) {
-        store.resetAssessment();
-      }
+    store.shuffleQuestions();
+    if (!store.name?.trim()) {
       store.goTo("name");
+    } else {
+      store.goTo("intro");
     }
   }, []);
 
-  const questionIndex = QUESTIONS.findIndex((q) => q.id === step);
+  const activeQuestions = questions?.length === 6 ? questions : QUESTIONS;
+  const questionIndex = activeQuestions.findIndex((q) => q.id === step);
   const isQuestionStep = questionIndex !== -1;
 
   const submit = async () => {
     setSubmitStatus("pending");
     slowTimer.current = setTimeout(() => setSubmitStatus("slow"), 7000);
     try {
-      const payload: SubmittedAnswer[] = QUESTIONS.map((q) => {
+      const payload: SubmittedAnswer[] = activeQuestions.map((q) => {
         const draft = answers[q.id];
         const option = q.options.find((o) => o.id === draft?.optionId);
         return {
@@ -55,6 +69,7 @@ export default function AssessPage() {
           optionId: draft?.optionId ?? "",
           optionText: option?.label ?? "",
           context: draft?.context?.trim() || undefined,
+          trait: option?.trait,
         };
       });
 
@@ -129,7 +144,7 @@ export default function AssessPage() {
       <AssessmentShell>
         <IntroStep
           name={name}
-          onStart={() => goTo(QUESTIONS[0].id)}
+          onStart={() => goTo(activeQuestions[0].id)}
           onBack={() => goTo("name")}
         />
       </AssessmentShell>
@@ -137,7 +152,7 @@ export default function AssessPage() {
   }
 
   if (isQuestionStep) {
-    const question = QUESTIONS[questionIndex];
+    const question = activeQuestions[questionIndex];
     const draft = answers[question.id];
     return (
       <AssessmentShell current={question.index} total={TOTAL_QUESTIONS}>
@@ -150,13 +165,13 @@ export default function AssessPage() {
             onSelect={(optionId) => setAnswer(question.id, optionId)}
             onContextChange={(value) => setContext(question.id, value)}
             isFirst={questionIndex === 0}
-            isLast={questionIndex === QUESTIONS.length - 1}
-            onBack={() => goTo(questionIndex === 0 ? "intro" : QUESTIONS[questionIndex - 1].id)}
+            isLast={questionIndex === activeQuestions.length - 1}
+            onBack={() => goTo(questionIndex === 0 ? "intro" : activeQuestions[questionIndex - 1].id)}
             onContinue={() => {
-              if (questionIndex === QUESTIONS.length - 1) {
+              if (questionIndex === activeQuestions.length - 1) {
                 if (isComplete()) submit();
               } else {
-                goTo(QUESTIONS[questionIndex + 1].id);
+                goTo(activeQuestions[questionIndex + 1].id);
               }
             }}
           />

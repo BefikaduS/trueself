@@ -5,11 +5,14 @@
 export interface AnswerOption {
   id: string; // e.g. "A"
   label: string;
+  trait?: string; // archetype or trait key e.g. "builder", "perfectionist"
 }
 
 export interface AssessmentQuestion {
-  id: string; // e.g. "natural-self"
-  index: number; // 1-6
+  id: string; // e.g. "natural-self-1"
+  dimension?: "natural-self" | "response-to-difficulty" | "the-excuse" | "emotional-reflex" | "real-success" | "future-responsibility";
+  dimensionIndex?: number; // 1-6
+  index: number; // 1-6 in active view
   eyebrow: string;
   question: string;
   helper?: string;
@@ -23,6 +26,7 @@ export interface SubmittedAnswer {
   optionId: string;
   optionText: string;
   context?: string;
+  trait?: string;
 }
 
 export type Confidence = "low" | "moderate" | "high";
