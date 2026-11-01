@@ -8,14 +8,9 @@ import { contrastRatio, isValidHex } from "@/lib/contrast";
 import { Icon } from "../common/Icon";
 import { Button } from "../common/Button";
 import { useToast } from "../common/Toast";
-import type {
-  ColorMode,
-  RadiusScale,
-  GlassIntensity,
-  MotionPreference,
-} from "@/lib/types";
+import type { ColorMode } from "@/lib/types";
 
-type PanelTab = "theme" | "glass" | "typography";
+type PanelTab = "theme" | "font";
 
 const MODES: { id: ColorMode; label: string; icon: string }[] = [
   { id: "system", label: "System", icon: "monitor" },
@@ -35,24 +30,6 @@ const QUICK_ACCENTS = [
   { name: "Gold", hex: "#F59E0B" },
 ];
 
-const RADIUS_OPTIONS: { id: RadiusScale; label: string; desc: string }[] = [
-  { id: "sharp", label: "Sharp", desc: "Crisp architectural lines (4-10px)" },
-  { id: "balanced", label: "Balanced", desc: "Apple standard curves (8-20px)" },
-  { id: "soft", label: "Soft", desc: "Relaxed organic curves (12-28px)" },
-];
-
-const GLASS_OPTIONS: { id: GlassIntensity; label: string; desc: string; blurPx: number }[] = [
-  { id: "subtle", label: "Subtle Film", desc: "Lightweight minimal blur", blurPx: 10 },
-  { id: "balanced", label: "Liquid Glass", desc: "Apple Vision frosted glass", blurPx: 26 },
-  { id: "deep", label: "Deep Frost", desc: "Ultra-diffused optical depth", blurPx: 46 },
-  { id: "crystal", label: "Crystal Caustic", desc: "Deep prism luminous glow", blurPx: 64 },
-];
-
-const MOTION_OPTIONS: { id: MotionPreference; label: string; desc: string; icon: string }[] = [
-  { id: "fluid", label: "Fluid & Expressive", desc: "Full microanimations & floating particles", icon: "magic-stick-3" },
-  { id: "reduced", label: "Calm & Reduced", desc: "Gentle instant transitions, zero distraction", icon: "shield-check" },
-];
-
 export function AppearancePanel() {
   const [activeTab, setActiveTab] = useState<PanelTab>("theme");
 
@@ -61,16 +38,10 @@ export function AppearancePanel() {
     mode,
     customAccent,
     fontPairing,
-    radiusScale,
-    glassIntensity,
-    motionPreference,
     setTheme,
     setMode,
     setCustomAccent,
     setFontPairing,
-    setRadiusScale,
-    setGlassIntensity,
-    setMotionPreference,
     reset,
   } = useAppearanceStore();
 
@@ -108,52 +79,38 @@ export function AppearancePanel() {
 
   return (
     <div className="flex flex-col gap-8 w-full">
-      {/* Segmented Category Switcher Tabs - responsive horizontal scroll on mobile */}
-      <div className="flex w-full items-center gap-1.5 overflow-x-auto no-scrollbar rounded-full border border-[var(--color-border)]/70 bg-[var(--color-surface)]/60 p-1 backdrop-blur-md">
+      {/* Tab bar: Hug content (w-fit) with 4px (p-1) all around */}
+      <div className="inline-flex w-fit items-center gap-1 rounded-full border border-[var(--color-border)]/70 bg-[var(--color-surface)]/60 p-1 backdrop-blur-md">
         <button
           type="button"
           onClick={() => setActiveTab("theme")}
           className={clsx(
-            "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
+            "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
             activeTab === "theme"
               ? "bg-[var(--color-surface-strong)] text-[var(--color-text)] shadow-xs ring-1 ring-[var(--color-border)]"
               : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
           )}
         >
           <Icon name="sun-2" size={16} />
-          <span>Theme &amp; Colors</span>
+          <span>Theme</span>
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab("glass")}
+          onClick={() => setActiveTab("font")}
           className={clsx(
-            "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
-            activeTab === "glass"
-              ? "bg-[var(--color-surface-strong)] text-[var(--color-text)] shadow-xs ring-1 ring-[var(--color-border)]"
-              : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-          )}
-        >
-          <Icon name="magic-stick-3" size={16} />
-          <span>Glass &amp; Surfaces</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("typography")}
-          className={clsx(
-            "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
-            activeTab === "typography"
+            "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
+            activeTab === "font"
               ? "bg-[var(--color-surface-strong)] text-[var(--color-text)] shadow-xs ring-1 ring-[var(--color-border)]"
               : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
           )}
         >
           <Icon name="pen-2" size={16} />
-          <span>Typography</span>
+          <span>Font</span>
         </button>
       </div>
 
-      {/* TAB 1: THEME & COLORS */}
+      {/* TAB 1: THEME */}
       {activeTab === "theme" && (
         <div className="flex flex-col gap-8 w-full animate-fadeIn">
           {/* Color Mode */}
@@ -293,116 +250,8 @@ export function AppearancePanel() {
         </div>
       )}
 
-      {/* TAB 2: GLASS & SURFACES */}
-      {activeTab === "glass" && (
-        <div className="flex flex-col gap-8 w-full animate-fadeIn">
-          {/* Realtime Glass Refraction */}
-          <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)]/70 bg-[var(--color-surface)]/40 p-5 sm:p-6 backdrop-blur-sm">
-            <div className="mb-3.5 flex flex-wrap items-center justify-between gap-1">
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--color-text)]">Glass Refraction (Realtime)</h3>
-                <p className="text-xs text-[var(--color-text-muted)]">
-                  Watch the navigation pill and translucent surfaces shift blur and reflection immediately
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {GLASS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setGlassIntensity(opt.id)}
-                  aria-pressed={glassIntensity === opt.id}
-                  className={clsx(
-                    "flex flex-col justify-between gap-3 rounded-[var(--radius-md)] border p-4 text-left transition-all duration-200 cursor-pointer",
-                    glassIntensity === opt.id
-                      ? "border-[var(--color-accent)] bg-[var(--color-surface)] ring-1 ring-[var(--color-accent)] shadow-xs"
-                      : "border-[var(--color-border)] hover:border-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/30"
-                  )}
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-[var(--color-text)]">{opt.label}</span>
-                      {glassIntensity === opt.id && (
-                        <span className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-                      )}
-                    </div>
-                    <p className="mt-1 text-xs text-[var(--color-text-muted)] leading-relaxed">{opt.desc}</p>
-                  </div>
-                  <span className="font-mono text-xs font-semibold text-[var(--color-accent)]">
-                    {opt.blurPx}px blur
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Interface Corner Radius */}
-          <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)]/70 bg-[var(--color-surface)]/40 p-5 sm:p-6 backdrop-blur-sm">
-            <div className="mb-3.5 flex flex-wrap items-center justify-between gap-1">
-              <h3 className="text-sm font-semibold text-[var(--color-text)]">Corner Roundness</h3>
-              <span className="text-xs text-[var(--color-text-muted)]">Shapes cards, buttons &amp; menus</span>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {RADIUS_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setRadiusScale(opt.id)}
-                  aria-pressed={radiusScale === opt.id}
-                  className={clsx(
-                    "flex flex-col gap-1.5 rounded-[var(--radius-md)] border p-4 text-left transition-all duration-200 cursor-pointer",
-                    radiusScale === opt.id
-                      ? "border-[var(--color-accent)] bg-[var(--color-surface)] ring-1 ring-[var(--color-accent)] shadow-xs"
-                      : "border-[var(--color-border)] hover:border-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/30"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[var(--color-text)]">{opt.label}</span>
-                    {radiusScale === opt.id && (
-                      <span className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-                    )}
-                  </div>
-                  <p className="text-xs text-[var(--color-text-muted)]">{opt.desc}</p>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* Motion & Interaction */}
-          <section className="rounded-[var(--radius-lg)] border border-[var(--color-border)]/70 bg-[var(--color-surface)]/40 p-5 sm:p-6 backdrop-blur-sm">
-            <div className="mb-3.5 flex flex-wrap items-center justify-between gap-1">
-              <h3 className="text-sm font-semibold text-[var(--color-text)]">Motion &amp; Dynamics</h3>
-              <span className="text-xs text-[var(--color-text-muted)]">Particles and spring transitions</span>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {MOTION_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setMotionPreference(opt.id)}
-                  aria-pressed={motionPreference === opt.id}
-                  className={clsx(
-                    "flex items-start gap-3 rounded-[var(--radius-md)] border p-4 text-left transition-all duration-200 cursor-pointer",
-                    motionPreference === opt.id
-                      ? "border-[var(--color-accent)] bg-[var(--color-surface)] ring-1 ring-[var(--color-accent)] shadow-xs"
-                      : "border-[var(--color-border)] hover:border-[var(--color-text-muted)] hover:bg-[var(--color-surface)]/30"
-                  )}
-                >
-                  <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[var(--color-surface-strong)] text-[var(--color-accent)]">
-                    <Icon name={opt.icon} size={18} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--color-text)]">{opt.label}</p>
-                    <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">{opt.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-        </div>
-      )}
-
-      {/* TAB 3: TYPOGRAPHY */}
-      {activeTab === "typography" && (
+      {/* TAB 2: FONT */}
+      {activeTab === "font" && (
         <div className="flex flex-col gap-6 w-full animate-fadeIn">
           <div className="flex flex-wrap items-center justify-between gap-1">
             <h3 className="text-sm font-semibold text-[var(--color-text)]">Curated Font Pairings</h3>
